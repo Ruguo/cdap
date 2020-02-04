@@ -83,7 +83,7 @@ const styles = (): StyleRules => {
       backgroundColor: '#4e5568',
     },
     panContainer: {
-      height: 'calc(100vh - 182px)',
+      height: 'calc(100vh - 192px)',
       width: 'calc(100% - 20px)',
       overflow: 'hidden',
       display: 'flex',
