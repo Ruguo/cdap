@@ -255,9 +255,7 @@ class CDAP extends Component {
                 }
                 const SampleTSXComponent = Loadable({
                   loader: () =>
-                    import(
-                      /* webpackChunkName: "SampleTSXComponent" */ 'components/SampleTSXComponent'
-                    ),
+                    import(/* webpackChunkName: "SampleTSXComponent" */ 'components/SampleTSXComponent'),
                   loading: LoadingSVGCentered,
                 });
                 return <SampleTSXComponent {...props} />;
@@ -272,9 +270,7 @@ class CDAP extends Component {
                 }
                 const MarkdownImpl = Loadable({
                   loader: () =>
-                    import(
-                      /* webpackChunkName: "MarkdownImplExample" */ 'components/Markdown/MarkdownImplExample'
-                    ),
+                    import(/* webpackChunkName: "MarkdownImplExample" */ 'components/Markdown/MarkdownImplExample'),
                   loading: LoadingSVGCentered,
                 });
                 return <MarkdownImpl {...props} />;
@@ -288,6 +284,25 @@ class CDAP extends Component {
                   <DAG {...props} />
                 </ErrorBoundary>
               )}
+            />
+            <Route
+              exact
+              path="/schema"
+              render={(props) => {
+                if (window.CDAP_CONFIG.cdap.mode !== 'development') {
+                  return <Page404 {...props} />;
+                }
+                const SchemaEditorDemo = Loadable({
+                  loader: () =>
+                    import(/* webpackChunkName: "SchemaEditor" */ 'components/AbstractWidget/SchemaEditor/SchemaEditorDemo'),
+                  loading: LoadingSVGCentered,
+                });
+                return (
+                  <ErrorBoundary>
+                    <SchemaEditorDemo />
+                  </ErrorBoundary>
+                );
+              }}
             />
             {/*
               Eventually handling 404 should move to the error boundary and all container components will have the error object.
