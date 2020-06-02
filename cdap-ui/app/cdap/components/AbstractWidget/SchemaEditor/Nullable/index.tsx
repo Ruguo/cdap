@@ -32,14 +32,22 @@ const CheckboxWrapper = withStyles(
   }
 )(Box);
 
-const NullableBase = ({ field }: IFieldRowComponentTypeProps) => {
+interface INullableBaseProps {
+  nullable: boolean;
+  onChange: (value: boolean) => void;
+}
+
+const NullableBase = ({ nullable, onChange }: INullableBaseProps) => {
   return (
     <CheckboxWrapper>
       <CheckBox
-        checked={field.nullable}
+        checked={nullable}
         color="primary"
         checkedIcon={<CheckBoxIcon fontSize="small" />}
         icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+          onChange(e.target.checked);
+        }}
       />
     </CheckboxWrapper>
   );

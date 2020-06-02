@@ -23,34 +23,29 @@ import TextBox from 'components/AbstractWidget/FormInputs/TextBox';
 import Select from 'components/AbstractWidget/FormInputs/Select';
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
-import { SchemaContext } from 'components/AbstractWidget/SchemaEditor/Context';
-const FieldTypeBase = ({ field }) => {
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+
+const FieldTypeBase = ({ field, name, type, nullable, onChange }: IFieldTypeBaseProps) => {
   return (
-    <SchemaContext.Consumer>
-      {({ changeName }) => {
-        console.log('rendering fieldtype: ', field.id);
-        return (
-          <FieldWrapper field={field}>
-            <FieldInputWrapper>
-              <TextBox
-                onChange={(newValue) => {
-                  const { id, ancestors } = field;
-                  changeName({ id, ancestors }, newValue);
-                }}
-                widgetProps={{ placeholder: 'name' }}
-                value={field.name}
-              />
-              <Select
-                value={field.type}
-                onChange={() => {}}
-                widgetProps={{ options: schemaTypes, dense: true }}
-              />
-            </FieldInputWrapper>
-            <Nullable field={field} />
-          </FieldWrapper>
-        );
-      }}
-    </SchemaContext.Consumer>
+    <FieldWrapper field={field}>
+      <FieldInputWrapper>
+        <TextBox
+          onChange={(newValue) => {
+            onChange('name', newValue);
+          }}
+          widgetProps={{ placeholder: 'name' }}
+          value={name}
+        />
+        <Select
+          value={type}
+          onChange={(newValue) => {
+            onChange('type', newValue);
+          }}
+          widgetProps={{ options: schemaTypes, dense: true }}
+        />
+      </FieldInputWrapper>
+      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
+    </FieldWrapper>
   );
 };
 

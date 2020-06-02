@@ -17,22 +17,23 @@
 import * as React from 'react';
 import withStyles, { WithStyles, StyleRules } from '@material-ui/core/styles/withStyles';
 import ThemeWrapper from 'components/ThemeWrapper';
-import { FieldType } from 'components/AbstractWidget/SchemaEditor/FieldType';
-import { UnionType } from 'components/AbstractWidget/SchemaEditor/UnionType';
-import { MapType } from 'components/AbstractWidget/SchemaEditor/MapType';
-import { EnumType } from 'components/AbstractWidget/SchemaEditor/EnumType';
-import { ArrayType } from 'components/AbstractWidget/SchemaEditor/ArrayType';
 import Paper from '@material-ui/core/Paper';
 import { SchemaContext } from 'components/AbstractWidget/SchemaEditor/Context';
-import { SchemaTree } from 'components/AbstractWidget/SchemaEditor/Context/SchemaTree';
+import { SchemaTree, INode } from 'components/AbstractWidget/SchemaEditor/Context/SchemaTree';
 import JSONEditor from 'components/AbstractWidget/CodeEditorWidget/JsonEditorWidget';
+import {
+  ISchemaType,
+  IFlattenRowType,
+  IFieldIdentifier,
+} from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { FieldsList } from 'components/AbstractWidget/SchemaEditor/FieldsList';
 
 const styles = (theme): StyleRules => {
   return {
     container: {
       height: 'auto',
       display: 'grid',
-      gridTemplateColumns: '75%',
+      gridTemplateColumns: '34% ',
     },
     pre: {
       backgroundColor: theme.palette.grey[600],
@@ -54,59 +55,59 @@ const styles = (theme): StyleRules => {
   };
 };
 
-interface ISchemaEditorProps extends WithStyles<typeof styles> {}
+interface ISchemaEditorProps extends WithStyles<typeof styles> {
+  schema: ISchemaType;
+}
 
-const RenderSubType = ({ field }) => {
-  switch (field.internalType) {
-    case 'record-field-simple-type':
-    case 'record-field-complex-type-root':
-      return <FieldType field={field} />;
-    case 'array-simple-type':
-    case 'array-complex-type':
-    case 'array-complex-type-root':
-      return <ArrayType field={field} />;
-    case 'enum-symbol':
-      return <EnumType field={field} />;
-    case 'map-keys-complex-type-root':
-    case 'map-keys-simple-type':
-    case 'map-values-complex-type-root':
-    case 'map-values-simple-type':
-      return <MapType field={field} />;
-    case 'union-simple-type':
-    case 'union-complex-type-root':
-      return <UnionType field={field} />;
-    default:
-      return null;
+interface ISchemaEditorState {
+  tree: INode;
+  flat: IFlattenRowType[];
+}
+
+class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorState> {
+  constructor(props) {
+    super(props);
+    const schema = SchemaTree(this.props.schema);
+    this.state = {
+      flat: schema.flat(),
+      tree: schema.tree(),
+    };
   }
-};
 
-function SchemaEditor({ classes }: ISchemaEditorProps) {
-  console.log('Rendering schema editor');
-  return (
-    <SchemaContext.Consumer>
-      {({ state }) => {
-        const { flatSchema, schemaTree } = state;
-        return (
-          <React.Fragment>
-            <h1>Schema Editor</h1>
-            <div className={classes.container}>
-              <div className={classes.schemaContainer}>
-                {flatSchema.map((field) => {
-                  return <RenderSubType field={field} key={field.id} />;
-                })}
-              </div>
-              {/* <Paper elevation={2} className={classes.pre}>
-                <pre>{JSON.stringify(flatSchema, null, 2)}</pre>
-              </Paper>
-              <Paper elevation={2} className={classes.pre}>
-                <JSONEditor value={JSON.stringify(schemaTree, null, 2)} rows={300} />
-              </Paper> */}
-            </div>
-          </React.Fragment>
-        );
-      }}
-    </SchemaContext.Consumer>
-  );
+  public onChange = (fieldId: IFieldIdentifier, property, value) => {
+    console.log(
+      this.state.flat.map((row) => {
+        if (row.id === fieldId.id) {
+          return {
+            ...row,
+            [property]: value,
+          };
+        }
+        return row;
+      })
+    );
+  };
+  public render() {
+    console.log('Rendering schema editor');
+    const { flat, tree } = this.state;
+    const { classes } = this.props;
+    return (
+      <React.Fragment>
+        <h1>Schema Editor</h1>
+        <div>
+          <div className={classes.schemaContainer}>
+            <FieldsList value={flat} onChange={this.onChange} />
+          </div>
+          {/* <Paper elevation={2} className={classes.pre}>
+            <pre>{JSON.stringify(flatSchema, null, 2)}</pre>
+          </Paper>
+          <Paper elevation={2} className={classes.pre}>
+            <JSONEditor value={JSON.stringify(schemaTree, null, 2)} rows={300} />
+          </Paper> */}
+        </div>
+      </React.Fragment>
+    );
+  }
 }
 
 const StyledDemo = withStyles(styles)(SchemaEditor);

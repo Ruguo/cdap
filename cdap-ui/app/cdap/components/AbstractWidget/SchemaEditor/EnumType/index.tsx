@@ -17,13 +17,21 @@
 import * as React from 'react';
 import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
 import TextBox from 'components/AbstractWidget/FormInputs/TextBox';
-import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const EnumTypeBase = ({ field }: IFieldRowComponentTypeProps) => {
-  const { symbol } = field.typeProperties;
+const EnumTypeBase = ({ field, typeProperties, onChange }: IFieldTypeBaseProps) => {
+  const { symbol } = typeProperties;
   return (
     <FieldWrapper field={field}>
-      <TextBox value={symbol} onChange={() => {}} widgetProps={{ placeholder: 'symbol' }} />
+      <TextBox
+        value={symbol}
+        onChange={(value) => {
+          onChange('typeProperties', {
+            symbol: value,
+          });
+        }}
+        widgetProps={{ placeholder: 'symbol' }}
+      />
     </FieldWrapper>
   );
 };

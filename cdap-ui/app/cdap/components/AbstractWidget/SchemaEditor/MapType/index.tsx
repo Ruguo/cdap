@@ -21,7 +21,7 @@ import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConsta
 import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import Box from '@material-ui/core/Box';
 import withStyles, { StyleRules } from '@material-ui/core/styles/withStyles';
-import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
 const MapWrapper = withStyles(
   (): StyleRules => {
@@ -36,7 +36,7 @@ const MapWrapper = withStyles(
   }
 )(Box);
 
-const MapTypeBase = ({ field }: IFieldRowComponentTypeProps) => {
+const MapTypeBase = ({ field, type, nullable, onChange }: IFieldTypeBaseProps) => {
   let label = '';
   if (['map-keys-complex-type-root', 'map-keys-simple-type'].indexOf(field.internalType) !== -1) {
     label = 'Keys: ';
@@ -51,12 +51,14 @@ const MapTypeBase = ({ field }: IFieldRowComponentTypeProps) => {
       <MapWrapper>
         <span>{label}</span>
         <Select
-          value={field.type}
-          onChange={() => {}}
+          value={type}
+          onChange={(newValue) => {
+            onChange('type', newValue);
+          }}
           widgetProps={{ options: schemaTypes, dense: true, inline: true }}
         />
       </MapWrapper>
-      <Nullable field={field} />
+      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
     </FieldWrapper>
   );
 };

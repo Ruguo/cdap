@@ -20,19 +20,21 @@ import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConsta
 import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
-import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const ArrayType = ({ field }: IFieldRowComponentTypeProps) => {
+const ArrayType = ({ field, type, nullable, onChange }: IFieldTypeBaseProps) => {
   return (
     <FieldWrapper field={field}>
       <SingleColumnWrapper>
         <Select
-          value={field.type}
-          onChange={() => {}}
+          value={type}
+          onChange={(newValue) => {
+            onChange('type', newValue);
+          }}
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </SingleColumnWrapper>
-      <Nullable field={field} />
+      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
     </FieldWrapper>
   );
 };

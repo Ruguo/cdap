@@ -19,6 +19,7 @@ import {
   ISimpleType,
   ILogicalTypeNames,
 } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { logicalTypeToSimpleTypeMap } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import cloneDeep from 'lodash/cloneDeep';
 
 const displayTypes: Array<ISimpleType | IComplexTypeNames | ILogicalTypeNames> = [
@@ -70,7 +71,7 @@ const getSimpleType = (type) => {
     return type;
   }
   if (type && type.logicalType) {
-    return type.logicalType;
+    return logicalTypeToSimpleTypeMap[type.logicalType];
   }
   return type;
 };

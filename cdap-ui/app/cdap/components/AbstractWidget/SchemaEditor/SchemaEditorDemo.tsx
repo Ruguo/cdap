@@ -22,52 +22,52 @@ import FormControl from '@material-ui/core/FormControl';
 import simpleSchema from 'components/AbstractWidget/SchemaEditor/data/simpleSchema';
 import { complex1, complex2 } from 'components/AbstractWidget/SchemaEditor/data/complexSchema';
 import SchemaEditor from 'components/AbstractWidget/SchemaEditor';
-import { SchemaContext, SchemaProvider } from 'components/AbstractWidget/SchemaEditor/Context';
-import { objectQuery } from 'services/helpers';
+import withStyles from '@material-ui/core/styles/withStyles';
 
 const schemas = {
   simple1: simpleSchema,
   complex1,
   complex2,
 };
-export default function SchemaEditorDemo() {
+const styles = () => {
+  return {
+    container: {
+      height: 'auto',
+      display: 'grid',
+      gridTemplateColumns: '80%',
+    },
+  };
+};
+function SchemaEditorDemoBase({ classes }) {
   const [value, setValue] = React.useState('complex1');
-  const handleChange = (setSchema, event) => {
+  const [schema, setSchema] = React.useState(schemas.complex1);
+  const handleChange = (event) => {
     const { value: radioValue } = event.target;
     setValue(radioValue);
     setSchema(schemas[radioValue]);
   };
 
   return (
-    <SchemaProvider>
+    <div className={classes.container}>
       <FormControl component="fieldset">
-        <SchemaContext.Consumer>
-          {({ setSchema }) => {
+        <RadioGroup aria-label="position" name="position" value={value} onChange={handleChange} row>
+          {Object.keys(schemas).map((s, i) => {
             return (
-              <RadioGroup
-                aria-label="position"
-                name="position"
-                value={value}
-                onChange={handleChange.bind(null, setSchema)}
-                row
-              >
-                {Object.keys(schemas).map((s, i) => {
-                  return (
-                    <FormControlLabel
-                      key={i}
-                      value={s}
-                      control={<Radio color="primary" />}
-                      label={s}
-                      labelPlacement="start"
-                    />
-                  );
-                })}
-              </RadioGroup>
+              <FormControlLabel
+                key={i}
+                value={s}
+                control={<Radio color="primary" />}
+                label={s}
+                labelPlacement="start"
+              />
             );
-          }}
-        </SchemaContext.Consumer>
+          })}
+        </RadioGroup>
       </FormControl>
-      <SchemaEditor />
-    </SchemaProvider>
+      <SchemaEditor schema={schema} />
+    </div>
   );
 }
+
+const SchemaEditorDemo = withStyles(styles)(SchemaEditorDemoBase);
+export default SchemaEditorDemo;

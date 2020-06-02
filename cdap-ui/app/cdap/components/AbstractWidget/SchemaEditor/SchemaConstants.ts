@@ -14,12 +14,12 @@
  * the License.
  */
 
+const logicalTypes = ['time', 'timestamp', 'decimal', 'date'];
+
 const schemaTypes = [
   'array',
   'boolean',
   'bytes',
-  'date',
-  'decimal',
   'double',
   'enum',
   'float',
@@ -29,10 +29,16 @@ const schemaTypes = [
   'number',
   'record',
   'string',
-  'time',
   'union',
-];
+].concat(logicalTypes);
+
+const logicalTypeToSimpleTypeMap = {
+  'time-micros': 'time',
+  'timestamp-micros': 'timestamp',
+  date: 'date',
+  decimal: 'decimal',
+};
 
 const INDENTATION_SPACING = 10;
 
-export { schemaTypes, INDENTATION_SPACING };
+export { schemaTypes, INDENTATION_SPACING, logicalTypeToSimpleTypeMap };

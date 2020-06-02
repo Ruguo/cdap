@@ -159,6 +159,20 @@ interface IFieldRowComponentTypeProps {
   field: IFlattenRowType;
 }
 
+interface IFieldIdentifier {
+  id: string;
+  ancestors: string[];
+}
+
+interface IFieldTypeBaseProps {
+  name?: string;
+  type?: string;
+  nullable?: boolean;
+  typeProperties?: Record<string, any>;
+  field: IFlattenRowType;
+  onChange: (property: string, value: string | boolean | Record<string, string>) => void;
+}
+
 export {
   ISimpleType,
   IComplexTypeNames,
@@ -190,4 +204,6 @@ export {
   IFieldRowComponentTypeProps,
   IInternalFieldType,
   ILogicalTypeBase,
+  IFieldIdentifier,
+  IFieldTypeBaseProps,
 };
