@@ -36,29 +36,42 @@ const MapWrapper = withStyles(
   }
 )(Box);
 
-const MapTypeBase = ({ field, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const MapTypeBase = ({
+  ancestorsCount,
+  internalType,
+  type,
+  nullable,
+  onChange,
+}: IFieldTypeBaseProps) => {
   let label = '';
-  if (['map-keys-complex-type-root', 'map-keys-simple-type'].indexOf(field.internalType) !== -1) {
+  if (['map-keys-complex-type-root', 'map-keys-simple-type'].indexOf(internalType) !== -1) {
     label = 'Keys: ';
   }
-  if (
-    ['map-values-complex-type-root', 'map-values-simple-type'].indexOf(field.internalType) !== -1
-  ) {
+  if (['map-values-complex-type-root', 'map-values-simple-type'].indexOf(internalType) !== -1) {
     label = 'Values: ';
   }
+  const [fieldType, setFieldType] = React.useState(type);
+  const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
-    <FieldWrapper field={field}>
+    <FieldWrapper ancestorsCount={ancestorsCount}>
       <MapWrapper>
         <span>{label}</span>
         <Select
-          value={type}
+          value={fieldType}
           onChange={(newValue) => {
+            setFieldType(newValue);
             onChange('type', newValue);
           }}
           widgetProps={{ options: schemaTypes, dense: true, inline: true }}
         />
       </MapWrapper>
-      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
+      <Nullable
+        nullable={fieldNullable}
+        onChange={(checked) => {
+          setFieldNullable(checked);
+          onChange('nullable', checked);
+        }}
+      />
     </FieldWrapper>
   );
 };

@@ -19,13 +19,15 @@ import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/F
 import TextBox from 'components/AbstractWidget/FormInputs/TextBox';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const EnumTypeBase = ({ field, typeProperties, onChange }: IFieldTypeBaseProps) => {
+const EnumTypeBase = ({ ancestorsCount, typeProperties, onChange }: IFieldTypeBaseProps) => {
   const { symbol } = typeProperties;
+  const [enumSymbol, setEnumSymbol] = React.useState(symbol);
   return (
-    <FieldWrapper field={field}>
+    <FieldWrapper ancestorsCount={ancestorsCount}>
       <TextBox
-        value={symbol}
+        value={enumSymbol}
         onChange={(value) => {
+          setEnumSymbol(value);
           onChange('typeProperties', {
             symbol: value,
           });

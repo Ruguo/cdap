@@ -22,8 +22,10 @@ import {
   IFieldType,
   IFieldTypeNullable,
   ILogicalTypeBase,
+  IFieldIdentifier,
 } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 import uuidV4 from 'uuid/v4';
+import findIndex from 'lodash/findIndex';
 import {
   getComplexTypeName,
   isNullable,
@@ -37,7 +39,7 @@ type ITypeProperties = Record<string, any>;
 
 interface INode {
   name?: string;
-  children?: INode | Record<string, INode>;
+  children?: Record<string, INode>;
   id: string;
   internalType: IInternalFieldType;
   nullable?: boolean;
@@ -226,7 +228,7 @@ function parseSchema(avroSchema: ISchemaType, name = 'etlSchemaBody'): INode {
     name,
     internalType: 'schema',
     id: uuidV4(),
-    children: {} as INode,
+    children: {} as Record<string, INode>,
   };
   for (const field of fields) {
     const child = parseSubTree(field);
@@ -261,7 +263,29 @@ function flattenTree(schemaTree: INode, ancestors = []) {
 interface ISchemaTree {
   tree: () => INode;
   flat: () => IFlattenRowType[];
+  update: (fieldId: IFieldIdentifier, property, value) => void;
 }
+
+const updateTree = (tree: INode, fieldId: IFieldIdentifier, { property, value }) => {
+  if (!tree) {
+    console.log('tree or children is undefined', tree);
+    return undefined;
+  }
+  if (fieldId.ancestors.length === 1) {
+    if (fieldId.id === tree.id) {
+      console.log('match found');
+      tree[property] = value;
+      return tree;
+    }
+    console.log("final tree id doesn't match");
+    return undefined;
+  }
+  return updateTree(
+    tree.children[fieldId.ancestors[1]],
+    { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) },
+    { property, value }
+  );
+};
 
 function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
   const schemaTree: INode = parseSchema(avroSchema);
@@ -269,7 +293,21 @@ function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
   return {
     tree: () => schemaTree,
     flat: () => flatTree,
+    update: (fieldId: IFieldIdentifier, property, value) => {
+      const index = flatTree.findIndex((t) => t.id === fieldId.id);
+      if (index === -1) {
+        return;
+      }
+      flatTree[index][property] = value;
+      const matchingEntry = flatTree[index];
+      updateTree(
+        schemaTree,
+        { id: matchingEntry.id, ancestors: matchingEntry.ancestors.concat([matchingEntry.id]) },
+        { property, value }
+      );
+      console.log('new tree: ', schemaTree);
+    },
   };
 }
 
-export { SchemaTree, INode };
+export { SchemaTree, INode, ISchemaTree };

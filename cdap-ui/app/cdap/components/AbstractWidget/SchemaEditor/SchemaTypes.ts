@@ -168,8 +168,9 @@ interface IFieldTypeBaseProps {
   name?: string;
   type?: string;
   nullable?: boolean;
+  internalType?: IInternalFieldType;
   typeProperties?: Record<string, any>;
-  field: IFlattenRowType;
+  ancestorsCount: number;
   onChange: (property: string, value: string | boolean | Record<string, string>) => void;
 }
 

@@ -25,26 +25,37 @@ import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConsta
 import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const FieldTypeBase = ({ field, name, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const FieldTypeBase = ({ ancestorsCount, name, type, nullable, onChange }: IFieldTypeBaseProps) => {
+  const [fieldName, setFieldName] = React.useState(name);
+  const [fieldType, setFieldType] = React.useState(type);
+  const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
-    <FieldWrapper field={field}>
+    <FieldWrapper ancestorsCount={ancestorsCount}>
       <FieldInputWrapper>
         <TextBox
           onChange={(newValue) => {
+            setFieldName(newValue);
             onChange('name', newValue);
           }}
           widgetProps={{ placeholder: 'name' }}
-          value={name}
+          value={fieldName}
         />
         <Select
-          value={type}
+          value={fieldType}
           onChange={(newValue) => {
+            setFieldType(newValue);
             onChange('type', newValue);
           }}
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </FieldInputWrapper>
-      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
+      <Nullable
+        nullable={fieldNullable}
+        onChange={(checked) => {
+          setFieldNullable(checked);
+          onChange('nullable', checked);
+        }}
+      />
     </FieldWrapper>
   );
 };

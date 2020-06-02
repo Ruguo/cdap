@@ -17,24 +17,24 @@
 import * as React from 'react';
 import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const UnionTypeBase = ({ field, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const UnionTypeBase = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseProps) => {
+  const [fieldType, setFieldType] = React.useState(type);
   return (
-    <FieldWrapper field={field}>
+    <FieldWrapper ancestorsCount={ancestorsCount}>
       <SingleColumnWrapper>
         <Select
-          value={type}
+          value={fieldType}
           onChange={(newValue) => {
+            setFieldType(newValue);
             onChange('type', newValue);
           }}
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </SingleColumnWrapper>
-      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
     </FieldWrapper>
   );
 };

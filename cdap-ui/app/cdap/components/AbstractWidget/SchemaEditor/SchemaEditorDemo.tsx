@@ -35,6 +35,7 @@ const styles = () => {
       height: 'auto',
       display: 'grid',
       gridTemplateColumns: '80%',
+      gridTemplateRows: '30px 50px',
     },
   };
 };

@@ -55,14 +55,14 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
     };
   }
 
+  public componentWillReceiveProps() {
+    return;
+  }
+
   public onChange = (property: string, value) => {
-    if (['name', 'type', 'nullable'].indexOf(property) === -1) {
+    if (['name', 'type', 'nullable', 'typeProperties'].indexOf(property) === -1) {
       return;
     }
-    this.setState({
-      [property]: value,
-    } as Pick<IFieldRowState, 'name' | 'type' | 'nullable'>);
-
     const { onChange, field } = this.props;
     if (onChange) {
       this.props.onChange({ id: field.id, ancestors: field.ancestors }, property, value);
@@ -76,10 +76,10 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
       case 'record-field-complex-type-root':
         return (
           <FieldType
-            field={this.props.field}
-            name={this.state.name}
-            type={this.state.type}
-            nullable={this.state.nullable}
+            ancestorsCount={this.props.field.ancestors.length}
+            name={this.props.field.name}
+            type={this.props.field.type}
+            nullable={this.props.field.nullable}
             onChange={this.onChange}
           />
         );
@@ -88,17 +88,17 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
       case 'array-complex-type-root':
         return (
           <ArrayType
-            field={this.props.field}
-            type={this.state.type}
-            nullable={this.state.nullable}
+            ancestorsCount={this.props.field.ancestors.length}
+            type={this.props.field.type}
+            nullable={this.props.field.nullable}
             onChange={this.onChange}
           />
         );
       case 'enum-symbol':
         return (
           <EnumType
-            field={this.props.field}
-            typeProperties={this.state.typeProperties}
+            ancestorsCount={this.props.field.ancestors.length}
+            typeProperties={this.props.field.typeProperties}
             onChange={this.onChange}
           />
         );
@@ -108,9 +108,10 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
       case 'map-values-simple-type':
         return (
           <MapType
-            field={this.props.field}
-            type={this.state.type}
-            nullable={this.state.nullable}
+            ancestorsCount={this.props.field.ancestors.length}
+            internalType={this.props.field.internalType}
+            type={this.props.field.type}
+            nullable={this.props.field.nullable}
             onChange={this.onChange}
           />
         );
@@ -118,9 +119,9 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
       case 'union-complex-type-root':
         return (
           <UnionType
-            field={this.props.field}
-            type={this.state.type}
-            nullable={this.state.nullable}
+            ancestorsCount={this.props.field.ancestors.length}
+            type={this.props.field.type}
+            nullable={this.props.field.nullable}
             onChange={this.onChange}
           />
         );

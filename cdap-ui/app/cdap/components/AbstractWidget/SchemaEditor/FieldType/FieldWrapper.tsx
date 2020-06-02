@@ -22,15 +22,13 @@ import withStyles from '@material-ui/core/styles/withStyles';
 import { INDENTATION_SPACING } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-interface IFieldWrapperProps extends IFieldRowComponentTypeProps {
+interface IFieldWrapperProps {
+  ancestorsCount: number;
   children?: React.ReactNode;
   style?: any;
 }
-const FieldWrapperBase = ({ field, children, style = {} }: IFieldWrapperProps) => {
-  const spacing =
-    field.ancestors && Array.isArray(field.ancestors)
-      ? field.ancestors.length * INDENTATION_SPACING
-      : 0;
+const FieldWrapperBase = ({ ancestorsCount = 0, children, style = {} }: IFieldWrapperProps) => {
+  const spacing = ancestorsCount * INDENTATION_SPACING;
   const spacingWithLeftMargin = spacing + 10;
   const spacingMinusLeftMargin = spacing - 10;
   const firstColumn = `calc(100% - 100px - ${spacingWithLeftMargin}px)`;
@@ -48,7 +46,7 @@ const FieldWrapperBase = ({ field, children, style = {} }: IFieldWrapperProps) =
     };
   }
   return (
-    <Paper elevation={2} key={field.name} style={customStyles}>
+    <Paper elevation={2} style={customStyles}>
       {children}
     </Paper>
   );

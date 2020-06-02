@@ -22,19 +22,28 @@ import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/Sing
 import Select from 'components/AbstractWidget/FormInputs/Select';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
-const ArrayType = ({ field, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const ArrayType = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseProps) => {
+  const [fieldType, setFieldType] = React.useState(type);
+  const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
-    <FieldWrapper field={field}>
+    <FieldWrapper ancestorsCount={ancestorsCount}>
       <SingleColumnWrapper>
         <Select
-          value={type}
+          value={fieldType}
           onChange={(newValue) => {
+            setFieldType(newValue);
             onChange('type', newValue);
           }}
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </SingleColumnWrapper>
-      <Nullable nullable={nullable} onChange={(checked) => onChange('nullable', checked)} />
+      <Nullable
+        nullable={fieldNullable}
+        onChange={(checked) => {
+          setFieldNullable(checked);
+          onChange('nullable', checked);
+        }}
+      />
     </FieldWrapper>
   );
 };

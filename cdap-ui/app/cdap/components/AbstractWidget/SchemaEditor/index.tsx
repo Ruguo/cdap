@@ -17,10 +17,11 @@
 import * as React from 'react';
 import withStyles, { WithStyles, StyleRules } from '@material-ui/core/styles/withStyles';
 import ThemeWrapper from 'components/ThemeWrapper';
-import Paper from '@material-ui/core/Paper';
-import { SchemaContext } from 'components/AbstractWidget/SchemaEditor/Context';
-import { SchemaTree, INode } from 'components/AbstractWidget/SchemaEditor/Context/SchemaTree';
-import JSONEditor from 'components/AbstractWidget/CodeEditorWidget/JsonEditorWidget';
+import {
+  SchemaTree,
+  INode,
+  ISchemaTree,
+} from 'components/AbstractWidget/SchemaEditor/Context/SchemaTree';
 import {
   ISchemaType,
   IFlattenRowType,
@@ -65,27 +66,26 @@ interface ISchemaEditorState {
 }
 
 class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorState> {
+  private schema: ISchemaTree = null;
   constructor(props) {
     super(props);
-    const schema = SchemaTree(this.props.schema);
+    this.schema = SchemaTree(this.props.schema);
     this.state = {
-      flat: schema.flat(),
-      tree: schema.tree(),
+      flat: this.schema.flat(),
+      tree: this.schema.tree(),
     };
   }
 
+  public componentWillReceiveProps(nextProps) {
+    this.schema = SchemaTree(nextProps.schema);
+    this.setState({
+      flat: this.schema.flat(),
+      tree: this.schema.tree(),
+    });
+  }
+
   public onChange = (fieldId: IFieldIdentifier, property, value) => {
-    console.log(
-      this.state.flat.map((row) => {
-        if (row.id === fieldId.id) {
-          return {
-            ...row,
-            [property]: value,
-          };
-        }
-        return row;
-      })
-    );
+    this.schema.update(fieldId, property, value);
   };
   public render() {
     console.log('Rendering schema editor');

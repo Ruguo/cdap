@@ -34,13 +34,19 @@ export class FieldsList extends React.Component<IFieldsListProps, IFieldsListSta
   public state: IFieldsListState = {
     rows: this.props.value || [],
   };
-  public componentWillReceiveProps() {
-    return;
+  public componentWillReceiveProps(nextProps: IFieldsListProps) {
+    const ids = nextProps.value.map((r) => r.id).join(',');
+    const existingids = this.state.rows.map((r) => r.id).join(',');
+    if (ids !== existingids) {
+      this.setState({
+        rows: nextProps.value,
+      });
+    }
   }
 
   public render() {
     return this.state.rows.map((field) => (
-      <FieldRow field={field} onChange={this.props.onChange} />
+      <FieldRow key={field.id} field={field} onChange={this.props.onChange} />
     ));
   }
 }
