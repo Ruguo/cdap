@@ -300,11 +300,12 @@ function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
       }
       flatTree[index][property] = value;
       const matchingEntry = flatTree[index];
-      updateTree(
-        schemaTree,
-        { id: matchingEntry.id, ancestors: matchingEntry.ancestors.concat([matchingEntry.id]) },
-        { property, value }
-      );
+      const id = {
+        id: matchingEntry.id,
+        ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
+      };
+      const valueObj = { property, value };
+      updateTree(schemaTree, id, valueObj);
       console.log('new tree: ', schemaTree);
     },
   };
