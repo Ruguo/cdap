@@ -25,7 +25,7 @@ import {
   IFieldIdentifier,
 } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 import uuidV4 from 'uuid/v4';
-import findIndex from 'lodash/findIndex';
+import isNil from 'lodash/isNil';
 import {
   getComplexTypeName,
   isNullable,
@@ -34,6 +34,7 @@ import {
   getSimpleType,
 } from 'components/AbstractWidget/SchemaEditor/SchemaHelpers';
 import isObject from 'lodash/isObject';
+import isEmpty from 'lodash/isEmpty';
 
 type ITypeProperties = Record<string, any>;
 
@@ -45,6 +46,41 @@ interface INode {
   nullable?: boolean;
   type?: IDisplayType;
   typeProperties?: ITypeProperties;
+}
+
+function getInternalType(tree: INode) {
+  const hasChildren = Object.keys(tree.children).length;
+  if (tree.internalType === 'record-field-simple-type' && hasChildren) {
+    return 'record-field-complex-type-root';
+  }
+  if (tree.internalType === 'record-field-complex-type-root' && !hasChildren) {
+    return 'record-field-simple-type';
+  }
+  if (tree.internalType === 'union-simple-type' && hasChildren) {
+    return 'union-complex-type-root';
+  }
+  if (tree.internalType === 'union-complex-type-root' && !hasChildren) {
+    return 'union-simple-type';
+  }
+  if (tree.internalType === 'array-simple-type' && hasChildren) {
+    return 'array-complex-type-root';
+  }
+  if (tree.internalType === 'array-complex-type-root' && !hasChildren) {
+    return 'array-simple-type';
+  }
+  if (tree.internalType === 'map-keys-simple-type' && hasChildren) {
+    return 'map-keys-complex-type-root';
+  }
+  if (tree.internalType === 'map-keys-complex-type-root' && hasChildren) {
+    return 'map-keys-simple-type';
+  }
+  if (tree.internalType === 'map-values-simple-type' && hasChildren) {
+    return 'map-values-complex-type-root';
+  }
+  if (tree.internalType === 'map-values-complex-type-root' && hasChildren) {
+    return 'map-values-simple-type';
+  }
+  return tree.internalType;
 }
 
 function parseUnionType(type): Record<string, INode> {
@@ -263,39 +299,107 @@ function flattenTree(schemaTree: INode, ancestors = []) {
 interface ISchemaTree {
   tree: () => INode;
   flat: () => IFlattenRowType[];
-  update: (fieldId: IFieldIdentifier, property, value) => void;
+  update: (fieldId: IFieldIdentifier, index: number, property, value) => void;
 }
 
-const updateTree = (tree: INode, fieldId: IFieldIdentifier, { property, value }) => {
+const branchCount = (tree: INode): number => {
+  let count = 1;
+  if (tree && !isEmpty(tree.children) && Object.keys(tree.children).length) {
+    Object.values(tree.children).forEach((child: INode) => {
+      count += branchCount(child);
+    });
+  }
+  return count;
+};
+
+const initChildren = (tree: INode, type): Record<string, INode> => {
+  switch (type) {
+    case 'array':
+      return parseArrayType({
+        type: 'array',
+        items: 'string',
+      });
+    case 'enum':
+      return parseEnumType({
+        type: 'enum',
+        symbols: [''],
+      });
+    case 'map':
+      return parseMapType({
+        type: 'map',
+        keys: 'string',
+        values: 'string',
+      });
+    case 'record': {
+      return parseComplexType({
+        name: 'etlSchemaBody',
+        type: 'record',
+        fields: [
+          {
+            name: '',
+            type: 'string',
+          },
+        ],
+      });
+    }
+    case 'union':
+      return parseUnionType(['string']);
+    default:
+      return {};
+  }
+};
+const updateTree = (
+  tree: INode,
+  fieldId: IFieldIdentifier,
+  { property, value }
+): {
+  tree: INode;
+  childrenCount: number;
+  newTree: INode;
+} => {
   if (!tree) {
-    console.log('tree or children is undefined', tree);
-    return undefined;
+    return { childrenCount: undefined, tree: undefined, newTree: undefined };
   }
   if (fieldId.ancestors.length === 1) {
     if (fieldId.id === tree.id) {
-      console.log('match found');
+      let childrenInBranch = 0;
       tree[property] = value;
-      return tree;
+      if (property === 'type') {
+        childrenInBranch = branchCount(tree);
+        tree.children = initChildren(tree, value);
+        tree.internalType = getInternalType(tree);
+        return { childrenCount: childrenInBranch, tree, newTree: tree };
+      }
+      return { childrenCount: childrenInBranch, tree, newTree: undefined };
     }
-    console.log("final tree id doesn't match");
     return undefined;
   }
-  return updateTree(
+  const { tree: child, childrenCount, newTree } = updateTree(
     tree.children[fieldId.ancestors[1]],
     { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) },
     { property, value }
   );
+  return {
+    tree: {
+      ...tree,
+      children: {
+        ...tree.children,
+        [child.id]: child,
+      },
+    },
+    childrenCount,
+    newTree,
+  };
 };
 
 function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
-  const schemaTree: INode = parseSchema(avroSchema);
-  const flatTree: IFlattenRowType[] = flattenTree(schemaTree);
+  let schemaTree: INode = parseSchema(avroSchema);
+  let flatTree: IFlattenRowType[] = flattenTree(schemaTree);
   return {
     tree: () => schemaTree,
     flat: () => flatTree,
-    update: (fieldId: IFieldIdentifier, property, value) => {
-      const index = flatTree.findIndex((t) => t.id === fieldId.id);
-      if (index === -1) {
+    update: (fieldId: IFieldIdentifier, index: number, property, value) => {
+      if (isNil(index) || index === -1) {
         return;
       }
       flatTree[index][property] = value;
@@ -305,8 +409,13 @@ function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
         ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
       };
       const valueObj = { property, value };
-      updateTree(schemaTree, id, valueObj);
-      console.log('new tree: ', schemaTree);
+      const { tree, childrenCount, newTree } = updateTree(schemaTree, id, valueObj);
+      const newFlatSubTree = flattenTree(newTree, matchingEntry.ancestors);
+      schemaTree = tree;
+      if (childrenCount > 1 || newTree) {
+        flatTree = [...flatTree.slice(0, index), ...flatTree.slice(index + childrenCount)];
+        flatTree = [...flatTree.slice(0, index), ...newFlatSubTree, ...flatTree.slice(index)];
+      }
     },
   };
 }

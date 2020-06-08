@@ -58,6 +58,7 @@ const styles = (theme): StyleRules => {
 
 interface ISchemaEditorProps extends WithStyles<typeof styles> {
   schema: ISchemaType;
+  onChange: (props: { tree: INode; flat: IFlattenRowType[] }) => void;
 }
 
 interface ISchemaEditorState {
@@ -84,28 +85,23 @@ class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorStat
     });
   }
 
-  public onChange = (fieldId: IFieldIdentifier, property, value) => {
-    this.schema.update(fieldId, property, value);
+  public onChange = (index: number, fieldId: IFieldIdentifier, property, value) => {
+    this.schema.update(fieldId, index, property, value);
+    this.setState({
+      flat: this.schema.flat(),
+      tree: this.schema.tree(),
+    });
+    this.props.onChange({ tree: this.schema.tree(), flat: this.schema.flat() });
   };
   public render() {
-    console.log('Rendering schema editor');
-    const { flat, tree } = this.state;
+    const { flat } = this.state;
     const { classes } = this.props;
     return (
-      <React.Fragment>
-        <h1>Schema Editor</h1>
-        <div>
-          <div className={classes.schemaContainer}>
-            <FieldsList value={flat} onChange={this.onChange} />
-          </div>
-          {/* <Paper elevation={2} className={classes.pre}>
-            <pre>{JSON.stringify(flatSchema, null, 2)}</pre>
-          </Paper>
-          <Paper elevation={2} className={classes.pre}>
-            <JSONEditor value={JSON.stringify(schemaTree, null, 2)} rows={300} />
-          </Paper> */}
+      <div>
+        <div className={classes.schemaContainer}>
+          <FieldsList value={flat} onChange={this.onChange} />
         </div>
-      </React.Fragment>
+      </div>
     );
   }
 }

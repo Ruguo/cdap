@@ -27,7 +27,7 @@ interface IFieldsListState {
 
 interface IFieldsListProps {
   value: IFlattenRowType[];
-  onChange: (id: IFieldIdentifier, property, value) => void;
+  onChange: (index: number, id: IFieldIdentifier, property, value) => void;
 }
 
 export class FieldsList extends React.Component<IFieldsListProps, IFieldsListState> {
@@ -45,8 +45,8 @@ export class FieldsList extends React.Component<IFieldsListProps, IFieldsListSta
   }
 
   public render() {
-    return this.state.rows.map((field) => (
-      <FieldRow key={field.id} field={field} onChange={this.props.onChange} />
+    return this.state.rows.map((field, i) => (
+      <FieldRow key={field.id} field={field} onChange={this.props.onChange.bind(null, i)} />
     ));
   }
 }

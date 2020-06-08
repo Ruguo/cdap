@@ -34,11 +34,16 @@ const styles = () => {
     container: {
       height: 'auto',
       display: 'grid',
+      gridTemplateColumns: '99%',
+    },
+    contentContainer: {
+      height: 'auto',
+      display: 'grid',
       gridTemplateColumns: '80%',
-      gridTemplateRows: '30px 50px',
     },
   };
 };
+
 function SchemaEditorDemoBase({ classes }) {
   const [value, setValue] = React.useState('complex1');
   const [schema, setSchema] = React.useState(schemas.complex1);
@@ -65,7 +70,15 @@ function SchemaEditorDemoBase({ classes }) {
           })}
         </RadioGroup>
       </FormControl>
-      <SchemaEditor schema={schema} />
+      <div className={classes.contentContainer}>
+        <SchemaEditor
+          schema={schema}
+          onChange={({ tree: t, flat: f }) => {
+            // tslint:disable-next-line: no-console
+            console.log(t, f);
+          }}
+        />
+      </div>
     </div>
   );
 }
