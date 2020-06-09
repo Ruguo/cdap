@@ -26,7 +26,8 @@ type ISimpleType =
   | 'long'
   | 'number'
   | 'string'
-  | 'time';
+  | 'time'
+  | 'timestamp';
 type ILogicalTypeNames = 'timestamp-micros' | 'date' | 'time-micros' | 'decimal';
 
 type IDisplayType = ISimpleType | IComplexTypeNames;

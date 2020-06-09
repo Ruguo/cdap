@@ -33,6 +33,18 @@ import {
   getNonNullableType,
   getSimpleType,
 } from 'components/AbstractWidget/SchemaEditor/SchemaHelpers';
+import {
+  logicalTypes,
+  defaultTimeStampTypeProperties,
+  defaultDecimalTypeProperties,
+  defaultTimeTypeProperties,
+  defaultDateTypeProperties,
+  defaultArrayType,
+  defaultEnumType,
+  defaultMapType,
+  defaultRecordType,
+  defaultUnionType,
+} from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
 
@@ -221,16 +233,40 @@ function parseComplexType(type): Record<string, INode> {
 function checkForLogicalType(field: IFieldType | IFieldTypeNullable) {
   let type = field.type;
   type = getNonNullableType(type) as ILogicalTypeBase;
-  if (type.logicalType) {
-    return {
-      typeProperties: {
-        logicalType: type.logicalType,
-        precision: type.precision,
-        scale: type.scale,
-      },
-    };
+  switch (type.logicalType) {
+    case 'decimal':
+      return {
+        typeProperties: {
+          type: 'bytes',
+          logicalType: type.logicalType,
+          precision: type.precision,
+          scale: type.scale,
+        },
+      };
+    case 'date':
+      return {
+        typeProperties: {
+          type: 'int',
+          logicalType: type.logicalType,
+        },
+      };
+    case 'time-micros':
+      return {
+        typeProperties: {
+          type: 'long',
+          logicalType: type.logicalType,
+        },
+      };
+    case 'timestamp-micros':
+      return {
+        typeProperties: {
+          type: 'long',
+          logicalType: type.logicalType,
+        },
+      };
+    default:
+      return {};
   }
-  return {};
 }
 
 function parseSubTree(field: IFieldType | IFieldTypeNullable): INode {
@@ -315,35 +351,34 @@ const branchCount = (tree: INode): number => {
 const initChildren = (tree: INode, type): Record<string, INode> => {
   switch (type) {
     case 'array':
-      return parseArrayType({
-        type: 'array',
-        items: 'string',
-      });
+      return parseArrayType(defaultArrayType);
     case 'enum':
-      return parseEnumType({
-        type: 'enum',
-        symbols: [''],
-      });
+      return parseEnumType(defaultEnumType);
     case 'map':
-      return parseMapType({
-        type: 'map',
-        keys: 'string',
-        values: 'string',
-      });
+      return parseMapType(defaultMapType);
     case 'record': {
-      return parseComplexType({
-        name: 'etlSchemaBody',
-        type: 'record',
-        fields: [
-          {
-            name: '',
-            type: 'string',
-          },
-        ],
-      });
+      return parseComplexType(defaultRecordType);
     }
     case 'union':
-      return parseUnionType(['string']);
+      return parseUnionType(defaultUnionType);
+    default:
+      return {};
+  }
+};
+
+const initTypeProperties = (tree: INode) => {
+  if (logicalTypes.indexOf(tree.type) === -1) {
+    return {};
+  }
+  switch (tree.type) {
+    case 'decimal':
+      return defaultDecimalTypeProperties;
+    case 'time':
+      return defaultTimeTypeProperties;
+    case 'timestamp':
+      return defaultTimeStampTypeProperties;
+    case 'date':
+      return defaultDateTypeProperties;
     default:
       return {};
   }
@@ -368,6 +403,7 @@ const updateTree = (
         childrenInBranch = branchCount(tree);
         tree.children = initChildren(tree, value);
         tree.internalType = getInternalType(tree);
+        tree.typeProperties = initTypeProperties(tree);
         return { childrenCount: childrenInBranch, tree, newTree: tree };
       }
       return { childrenCount: childrenInBranch, tree, newTree: undefined };
