@@ -156,9 +156,6 @@ interface IFlattenRowType {
   ancestors: string[];
   typeProperties?: Record<string, any>;
 }
-interface IFieldRowComponentTypeProps {
-  field: IFlattenRowType;
-}
 
 interface IFieldIdentifier {
   id: string;
@@ -172,7 +169,7 @@ interface IFieldTypeBaseProps {
   internalType?: IInternalFieldType;
   typeProperties?: Record<string, any>;
   ancestorsCount: number;
-  onChange: (property: string, value: string | boolean | Record<string, string>) => void;
+  onChange: (property: string, value?: string | boolean | Record<string, string>) => void;
 }
 
 export {
@@ -203,7 +200,6 @@ export {
   IFieldBaseType,
   ISchemaType,
   IFlattenRowType,
-  IFieldRowComponentTypeProps,
   IInternalFieldType,
   ILogicalTypeBase,
   IFieldIdentifier,

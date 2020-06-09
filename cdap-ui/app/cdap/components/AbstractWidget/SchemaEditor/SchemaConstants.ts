@@ -59,6 +59,10 @@ const defaultRecordType = {
     },
   ],
 };
+const defaultFieldType = {
+  name: '',
+  type: 'string',
+};
 const defaultUnionType = ['string'];
 
 const schemaTypes = [
@@ -102,4 +106,5 @@ export {
   defaultMapType,
   defaultRecordType,
   defaultUnionType,
+  defaultFieldType,
 };

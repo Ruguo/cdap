@@ -332,12 +332,6 @@ function flattenTree(schemaTree: INode, ancestors = []) {
   return result;
 }
 
-interface ISchemaTree {
-  tree: () => INode;
-  flat: () => IFlattenRowType[];
-  update: (fieldId: IFieldIdentifier, index: number, property, value) => void;
-}
-
 const branchCount = (tree: INode): number => {
   let count = 1;
   if (tree && !isEmpty(tree.children) && Object.keys(tree.children).length) {
@@ -383,77 +377,108 @@ const initTypeProperties = (tree: INode) => {
       return {};
   }
 };
-const updateTree = (
-  tree: INode,
-  fieldId: IFieldIdentifier,
-  { property, value }
-): {
-  tree: INode;
-  childrenCount: number;
-  newTree: INode;
-} => {
-  if (!tree) {
-    return { childrenCount: undefined, tree: undefined, newTree: undefined };
-  }
-  if (fieldId.ancestors.length === 1) {
-    if (fieldId.id === tree.id) {
-      let childrenInBranch = 0;
-      tree[property] = value;
-      if (property === 'type') {
-        childrenInBranch = branchCount(tree);
-        tree.children = initChildren(tree, value);
-        tree.internalType = getInternalType(tree);
-        tree.typeProperties = initTypeProperties(tree);
-        return { childrenCount: childrenInBranch, tree, newTree: tree };
-      }
-      return { childrenCount: childrenInBranch, tree, newTree: undefined };
-    }
-    return undefined;
-  }
-  const { tree: child, childrenCount, newTree } = updateTree(
-    tree.children[fieldId.ancestors[1]],
-    { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) },
-    { property, value }
-  );
-  return {
-    tree: {
-      ...tree,
-      children: {
-        ...tree.children,
-        [child.id]: child,
-      },
-    },
-    childrenCount,
-    newTree,
-  };
-};
 
-function SchemaTree(avroSchema: ISchemaType): ISchemaTree {
-  let schemaTree: INode = parseSchema(avroSchema);
-  let flatTree: IFlattenRowType[] = flattenTree(schemaTree);
-  return {
-    tree: () => schemaTree,
-    flat: () => flatTree,
-    update: (fieldId: IFieldIdentifier, index: number, property, value) => {
-      if (isNil(index) || index === -1) {
-        return;
-      }
-      flatTree[index][property] = value;
-      const matchingEntry = flatTree[index];
-      const id = {
-        id: matchingEntry.id,
-        ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
-      };
-      const valueObj = { property, value };
-      const { tree, childrenCount, newTree } = updateTree(schemaTree, id, valueObj);
-      const newFlatSubTree = flattenTree(newTree, matchingEntry.ancestors);
-      schemaTree = tree;
-      if (childrenCount > 1 || newTree) {
-        flatTree = [...flatTree.slice(0, index), ...flatTree.slice(index + childrenCount)];
-        flatTree = [...flatTree.slice(0, index), ...newFlatSubTree, ...flatTree.slice(index)];
-      }
-    },
-  };
+interface ISchemaTree {
+  getTree: () => INode;
+  getFlattedTree: () => IFlattenRowType[];
+  update: (fieldId: IFieldIdentifier, currentIndex: number, propert, value) => void;
+  add: (currentIndex: number, defaultTypeToAdd) => void;
+  remove: (currentIndex: number) => void;
 }
 
+class SchemaTreeBase implements ISchemaTree {
+  private schemaTree: INode;
+  private flatTree: IFlattenRowType[];
+  constructor(avroSchema) {
+    this.schemaTree = parseSchema(avroSchema);
+    this.flatTree = flattenTree(this.schemaTree);
+  }
+
+  public getTree = () => this.schemaTree;
+  public getFlattedTree = () => this.flatTree;
+
+  public add = (currentIndex: number, defaultTypeToAdd) => {
+    return;
+  };
+  public remove = (currentIndex: number) => {
+    return;
+  };
+
+  private updateTree = (
+    tree: INode,
+    fieldId: IFieldIdentifier,
+    { property, value }
+  ): {
+    tree: INode;
+    childrenCount: number;
+    newTree: INode;
+  } => {
+    if (!tree) {
+      return { childrenCount: undefined, tree: undefined, newTree: undefined };
+    }
+    if (fieldId.ancestors.length === 1) {
+      if (fieldId.id === tree.id) {
+        let childrenInBranch = 0;
+        tree[property] = value;
+        if (property === 'type') {
+          childrenInBranch = branchCount(tree);
+          tree.children = initChildren(tree, value);
+          tree.internalType = getInternalType(tree);
+          tree.typeProperties = initTypeProperties(tree);
+          return { childrenCount: childrenInBranch, tree, newTree: tree };
+        }
+        return { childrenCount: childrenInBranch, tree, newTree: undefined };
+      }
+      return undefined;
+    }
+    const { tree: child, childrenCount, newTree } = this.updateTree(
+      tree.children[fieldId.ancestors[1]],
+      { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) },
+      { property, value }
+    );
+    return {
+      tree: {
+        ...tree,
+        children: {
+          ...tree.children,
+          [child.id]: child,
+        },
+      },
+      childrenCount,
+      newTree,
+    };
+  };
+  public update = (fieldId: IFieldIdentifier, currentIndex: number, property, value) => {
+    if (isNil(currentIndex) || currentIndex === -1) {
+      return;
+    }
+    this.flatTree[currentIndex][property] = value;
+    const matchingEntry = this.flatTree[currentIndex];
+    const id = {
+      id: matchingEntry.id,
+      ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
+    };
+    const valueObj = { property, value };
+    const { tree, childrenCount, newTree } = this.updateTree(this.schemaTree, id, valueObj);
+    const newFlatSubTree = flattenTree(newTree, matchingEntry.ancestors);
+    this.schemaTree = tree;
+    if (childrenCount > 1 || newTree) {
+      this.flatTree = [
+        ...this.flatTree.slice(0, currentIndex),
+        ...this.flatTree.slice(currentIndex + childrenCount),
+      ];
+      this.flatTree = [
+        ...this.flatTree.slice(0, currentIndex),
+        ...newFlatSubTree,
+        ...this.flatTree.slice(currentIndex),
+      ];
+    }
+  };
+}
+function SchemaTree(avroSchema) {
+  const schemaTreeInstance = new SchemaTreeBase(avroSchema);
+  return {
+    getInstance: () => schemaTreeInstance,
+  };
+}
 export { SchemaTree, INode, ISchemaTree };

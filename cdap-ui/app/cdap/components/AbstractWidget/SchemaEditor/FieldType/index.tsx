@@ -21,9 +21,12 @@ import {
 } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
 import TextBox from 'components/AbstractWidget/FormInputs/TextBox';
 import Select from 'components/AbstractWidget/FormInputs/Select';
-import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
+import {
+  schemaTypes,
+  defaultFieldType,
+} from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
 const FieldTypeBase = ({ ancestorsCount, name, type, nullable, onChange }: IFieldTypeBaseProps) => {
   const [fieldName, setFieldName] = React.useState(name);
@@ -49,11 +52,17 @@ const FieldTypeBase = ({ ancestorsCount, name, type, nullable, onChange }: IFiel
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </FieldInputWrapper>
-      <Nullable
+      <RowButtons
         nullable={fieldNullable}
-        onChange={(checked) => {
+        onNullable={(checked) => {
           setFieldNullable(checked);
           onChange('nullable', checked);
+        }}
+        onAdd={() => {
+          onChange('add', defaultFieldType);
+        }}
+        onRemove={() => {
+          onChange('remove');
         }}
       />
     </FieldWrapper>

@@ -20,7 +20,6 @@ import Paper from '@material-ui/core/Paper';
 import isObject from 'lodash/isObject';
 import withStyles from '@material-ui/core/styles/withStyles';
 import { INDENTATION_SPACING } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 
 interface IFieldWrapperProps {
   ancestorsCount: number;
@@ -31,12 +30,13 @@ const FieldWrapperBase = ({ ancestorsCount = 0, children, style = {} }: IFieldWr
   const spacing = ancestorsCount * INDENTATION_SPACING;
   const spacingWithLeftMargin = spacing + 10;
   const spacingMinusLeftMargin = spacing - 10;
-  const firstColumn = `calc(100% - 100px - ${spacingWithLeftMargin}px)`;
-  const secondColumn = `calc(100px + ${spacingWithLeftMargin * 2}px)`;
+  const firstColumn = `calc(100% - 75px)`;
+  const secondColumn = `75px`;
   let customStyles = {
     marginLeft: `${spacing}px`,
     gridTemplateColumns: `${firstColumn} ${secondColumn}`,
     width: `calc(100% - ${spacingMinusLeftMargin}px)`,
+    gridGap: '10px',
     alignItems: 'center',
   };
   if (style && isObject(style)) {
@@ -56,7 +56,7 @@ const FieldInputWrapperBase = withStyles(() => {
   return {
     root: {
       display: 'grid',
-      gridTemplateColumns: '75% 25%',
+      gridTemplateColumns: 'auto 100px',
     },
   };
 })(Box);

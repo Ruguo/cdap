@@ -20,36 +20,44 @@ import Box from '@material-ui/core/Box';
 import CheckBox from '@material-ui/core/Checkbox';
 import CheckBoxIcon from '@material-ui/icons/CheckBox';
 import CheckBoxOutlineBlankIcon from '@material-ui/icons/CheckBoxOutlineBlank';
-import { IFieldRowComponentTypeProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
-
+import IconButton from '@material-ui/core/IconButton';
 const CheckboxWrapper = withStyles(
   (): StyleRules => {
     return {
       root: {
         textAlign: 'center',
+        display: 'inline-block',
+        padding: '5px',
       },
     };
   }
 )(Box);
+const CustomCheckbox = withStyles(
+  (): StyleRules => {
+    return {
+      root: {
+        padding: '0',
+      },
+    };
+  }
+)(CheckBox);
 
 interface INullableBaseProps {
   nullable: boolean;
-  onChange: (value: boolean) => void;
+  onNullable: (value: boolean) => void;
 }
 
-const NullableBase = ({ nullable, onChange }: INullableBaseProps) => {
+const NullableBase = ({ nullable, onNullable: onChange }: INullableBaseProps) => {
   return (
-    <CheckboxWrapper>
-      <CheckBox
-        checked={nullable}
-        color="primary"
-        checkedIcon={<CheckBoxIcon fontSize="small" />}
-        icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
-        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-          onChange(e.target.checked);
-        }}
-      />
-    </CheckboxWrapper>
+    <CustomCheckbox
+      checked={nullable}
+      color="primary"
+      checkedIcon={<CheckBoxIcon fontSize="small" />}
+      icon={<CheckBoxOutlineBlankIcon fontSize="small" />}
+      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+        onChange(e.target.checked);
+      }}
+    />
   );
 };
 

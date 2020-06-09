@@ -67,7 +67,7 @@ const MapTypeBase = ({
       </MapWrapper>
       <Nullable
         nullable={fieldNullable}
-        onChange={(checked) => {
+        onNullable={(checked) => {
           setFieldNullable(checked);
           onChange('nullable', checked);
         }}

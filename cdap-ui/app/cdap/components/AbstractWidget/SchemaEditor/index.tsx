@@ -46,6 +46,7 @@ const styles = (theme): StyleRules => {
       width: 'auto',
       margin: '20px',
       height: 'auto',
+      maxWidth: '500px',
       '& >div': {
         padding: '2px 10px',
         display: 'grid',
@@ -70,28 +71,28 @@ class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorStat
   private schema: ISchemaTree = null;
   constructor(props) {
     super(props);
-    this.schema = SchemaTree(this.props.schema);
+    this.schema = SchemaTree(this.props.schema).getInstance();
     this.state = {
-      flat: this.schema.flat(),
-      tree: this.schema.tree(),
+      flat: this.schema.getFlattedTree(),
+      tree: this.schema.getTree(),
     };
   }
 
   public componentWillReceiveProps(nextProps) {
-    this.schema = SchemaTree(nextProps.schema);
+    this.schema = SchemaTree(nextProps.schema).getInstance();
     this.setState({
-      flat: this.schema.flat(),
-      tree: this.schema.tree(),
+      flat: this.schema.getFlattedTree(),
+      tree: this.schema.getTree(),
     });
   }
 
   public onChange = (index: number, fieldId: IFieldIdentifier, property, value) => {
     this.schema.update(fieldId, index, property, value);
     this.setState({
-      flat: this.schema.flat(),
-      tree: this.schema.tree(),
+      flat: this.schema.getFlattedTree(),
+      tree: this.schema.getTree(),
     });
-    this.props.onChange({ tree: this.schema.tree(), flat: this.schema.flat() });
+    this.props.onChange({ tree: this.schema.getTree(), flat: this.schema.getFlattedTree() });
   };
   public render() {
     const { flat } = this.state;
