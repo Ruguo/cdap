@@ -2,7 +2,7 @@
 # yarn lockfile v1
 
 
-"@ajainarayanan/react-pan-zoom@^0.0.4":
+"@ajainarayanan/react-pan-zoom@0.0.4":
   version "0.0.4"
   resolved "https://registry.yarnpkg.com/@ajainarayanan/react-pan-zoom/-/react-pan-zoom-0.0.4.tgz#bc7082493be2efc6f4f9e58d05550155a00071c7"
   integrity sha512-mB+T5hsa6oyNmvHwXqcQTvmuyTS272FyeGMUyVRrQ/AWsb93HI1gA6thhdOGx2ApynBElYE+RM0LN9k+hBR5ag==
