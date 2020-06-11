@@ -22,11 +22,12 @@ import {
   INode,
   ISchemaTree,
 } from 'components/AbstractWidget/SchemaEditor/Context/SchemaTree';
+import { ISchemaType } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 import {
-  ISchemaType,
   IFlattenRowType,
   IFieldIdentifier,
-} from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+  IOnChangePayload,
+} from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { FieldsList } from 'components/AbstractWidget/SchemaEditor/FieldsList';
 
 const styles = (theme): StyleRules => {
@@ -86,8 +87,12 @@ class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorStat
     });
   }
 
-  public onChange = (index: number, fieldId: IFieldIdentifier, property, value) => {
-    this.schema.update(fieldId, index, property, value);
+  public onChange = (
+    index: number,
+    fieldId: IFieldIdentifier,
+    onChangePayload: IOnChangePayload
+  ) => {
+    this.schema.update(fieldId, index, onChangePayload);
     this.setState({
       flat: this.schema.getFlattedTree(),
       tree: this.schema.getTree(),

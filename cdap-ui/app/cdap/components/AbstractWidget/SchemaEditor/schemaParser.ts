@@ -21,7 +21,7 @@ import {
   getComplexTypeName,
 } from 'components/AbstractWidget/SchemaEditor/SchemaHelpers';
 import uuidV4 from 'uuid/v4';
-import { IFlattenRowType } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFlattenRowType } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 
 const flattenUnionType = (complexType, ancestors) => {
   if (!Array.isArray(complexType)) {

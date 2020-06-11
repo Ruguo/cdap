@@ -18,7 +18,8 @@ import * as React from 'react';
 import {
   IFlattenRowType,
   IFieldIdentifier,
-} from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+  IOnChangePayload,
+} from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { FieldRow } from 'components/AbstractWidget/SchemaEditor/FieldsList/FieldRow';
 
 interface IFieldsListState {
@@ -27,7 +28,7 @@ interface IFieldsListState {
 
 interface IFieldsListProps {
   value: IFlattenRowType[];
-  onChange: (index: number, id: IFieldIdentifier, property, value) => void;
+  onChange: (index: number, id: IFieldIdentifier, onChangePayload: IOnChangePayload) => void;
 }
 
 export class FieldsList extends React.Component<IFieldsListProps, IFieldsListState> {

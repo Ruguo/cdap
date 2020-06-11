@@ -18,10 +18,10 @@ import * as React from 'react';
 import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import Box from '@material-ui/core/Box';
 import withStyles, { StyleRules } from '@material-ui/core/styles/withStyles';
-import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
+import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
 const MapWrapper = withStyles(
   (): StyleRules => {
@@ -65,7 +65,7 @@ const MapTypeBase = ({
           widgetProps={{ options: schemaTypes, dense: true, inline: true }}
         />
       </MapWrapper>
-      <Nullable
+      <RowButtons
         nullable={fieldNullable}
         onNullable={(checked) => {
           setFieldNullable(checked);

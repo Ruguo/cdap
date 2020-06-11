@@ -53,21 +53,6 @@ type IComplexTypeFieldNullable =
   | IMapFieldNullable
   | IRecordFieldNullable;
 
-type IInternalFieldType =
-  | 'schema'
-  | 'record-field-simple-type'
-  | 'record-field-complex-type-root'
-  | 'array-simple-type'
-  | 'array-complex-type'
-  | 'array-complex-type-root'
-  | 'enum-symbol'
-  | 'map-keys-complex-type-root'
-  | 'map-keys-simple-type'
-  | 'map-values-complex-type-root'
-  | 'map-values-simple-type'
-  | 'union-simple-type'
-  | 'union-complex-type-root';
-
 interface IFieldBaseType {
   name: string;
 }
@@ -147,31 +132,6 @@ interface ISchemaType {
   schema: IRecordField;
 }
 
-interface IFlattenRowType {
-  id: string;
-  name?: string;
-  type?: ISimpleType | IComplexTypeNames;
-  internalType: IInternalFieldType;
-  nullable?: boolean;
-  ancestors: string[];
-  typeProperties?: Record<string, any>;
-}
-
-interface IFieldIdentifier {
-  id: string;
-  ancestors: string[];
-}
-
-interface IFieldTypeBaseProps {
-  name?: string;
-  type?: string;
-  nullable?: boolean;
-  internalType?: IInternalFieldType;
-  typeProperties?: Record<string, any>;
-  ancestorsCount: number;
-  onChange: (property: string, value?: string | boolean | Record<string, string>) => void;
-}
-
 export {
   ISimpleType,
   IComplexTypeNames,
@@ -199,9 +159,5 @@ export {
   IFieldTypeNullable,
   IFieldBaseType,
   ISchemaType,
-  IFlattenRowType,
-  IInternalFieldType,
   ILogicalTypeBase,
-  IFieldIdentifier,
-  IFieldTypeBaseProps,
 };

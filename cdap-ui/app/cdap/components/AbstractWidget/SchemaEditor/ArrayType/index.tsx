@@ -17,10 +17,10 @@
 import * as React from 'react';
 import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
-import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
+import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
 const ArrayType = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseProps) => {
   const [fieldType, setFieldType] = React.useState(type);
@@ -37,7 +37,7 @@ const ArrayType = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseP
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </SingleColumnWrapper>
-      <Nullable
+      <RowButtons
         nullable={fieldNullable}
         onNullable={(checked) => {
           setFieldNullable(checked);

@@ -17,13 +17,16 @@
 import {
   ISchemaType,
   IDisplayType,
-  IInternalFieldType,
-  IFlattenRowType,
   IFieldType,
   IFieldTypeNullable,
   ILogicalTypeBase,
-  IFieldIdentifier,
 } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import {
+  IInternalFieldType,
+  IFlattenRowType,
+  IFieldIdentifier,
+  IOnChangePayload,
+} from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import uuidV4 from 'uuid/v4';
 import isNil from 'lodash/isNil';
 import {
@@ -191,11 +194,11 @@ function parseMapType(type): Record<string, INode> {
   const result: Record<string, INode> = {};
   const mapKeysSubType = getMapSubType(keysType, {
     simpleType: 'map-keys-simple-type',
-    complexType: 'map-keys-complex-type',
+    complexType: 'map-keys-complex-type-root',
   });
   const mapValuesSubType = getMapSubType(valuesType, {
     simpleType: 'map-values-simple-type',
-    complexType: 'map-values-complex-type',
+    complexType: 'map-values-complex-type-root',
   });
   result[mapKeysSubType.id] = mapKeysSubType;
   result[mapValuesSubType.id] = mapValuesSubType;
@@ -381,9 +384,11 @@ const initTypeProperties = (tree: INode) => {
 interface ISchemaTree {
   getTree: () => INode;
   getFlattedTree: () => IFlattenRowType[];
-  update: (fieldId: IFieldIdentifier, currentIndex: number, propert, value) => void;
-  add: (currentIndex: number, defaultTypeToAdd) => void;
-  remove: (currentIndex: number) => void;
+  update: (
+    fieldId: IFieldIdentifier,
+    currentIndex: number,
+    onChangePayload: IOnChangePayload
+  ) => void;
 }
 
 class SchemaTreeBase implements ISchemaTree {
@@ -397,17 +402,17 @@ class SchemaTreeBase implements ISchemaTree {
   public getTree = () => this.schemaTree;
   public getFlattedTree = () => this.flatTree;
 
-  public add = (currentIndex: number, defaultTypeToAdd) => {
+  private addToTree = (tree: INode, fieldId: IFieldIdentifier, { defaultValue }) => {
     return;
   };
-  public remove = (currentIndex: number) => {
+  private remove = (currentIndex: number) => {
     return;
   };
 
   private updateTree = (
     tree: INode,
     fieldId: IFieldIdentifier,
-    { property, value }
+    { property, value }: Partial<IOnChangePayload>
   ): {
     tree: INode;
     childrenCount: number;
@@ -448,24 +453,37 @@ class SchemaTreeBase implements ISchemaTree {
       newTree,
     };
   };
-  public update = (fieldId: IFieldIdentifier, currentIndex: number, property, value) => {
+  public update = (
+    fieldId: IFieldIdentifier,
+    currentIndex: number,
+    { type, defaultValue, property, value }: IOnChangePayload
+  ) => {
     if (isNil(currentIndex) || currentIndex === -1) {
       return;
     }
     this.flatTree[currentIndex][property] = value;
     const matchingEntry = this.flatTree[currentIndex];
-    const id = {
+    const idObj = {
       id: matchingEntry.id,
       ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
     };
-    const valueObj = { property, value };
-    const { tree, childrenCount, newTree } = this.updateTree(this.schemaTree, id, valueObj);
-    const newFlatSubTree = flattenTree(newTree, matchingEntry.ancestors);
-    this.schemaTree = tree;
-    if (childrenCount > 1 || newTree) {
+    let result: { tree: INode; childrenCount: number; newTree: INode };
+    let newFlatSubTree: IFlattenRowType[];
+    switch (type) {
+      case 'update':
+        result = this.updateTree(this.schemaTree, idObj, { property, value });
+        newFlatSubTree = flattenTree(result.newTree, matchingEntry.ancestors);
+        break;
+      // case 'add':
+      //   result = this.addToTree(this.schemaTree, idObj, { defaultValue });
+      //   newFlatSubTree = flattenTree(result.newTree, matchingEntry.ancestors);
+      //   break;
+    }
+    this.schemaTree = result.tree;
+    if (result.childrenCount > 1 || result.newTree) {
       this.flatTree = [
         ...this.flatTree.slice(0, currentIndex),
-        ...this.flatTree.slice(currentIndex + childrenCount),
+        ...this.flatTree.slice(currentIndex + result.childrenCount),
       ];
       this.flatTree = [
         ...this.flatTree.slice(0, currentIndex),

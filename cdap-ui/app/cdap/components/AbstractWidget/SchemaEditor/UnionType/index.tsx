@@ -19,10 +19,12 @@ import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/F
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
-import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
+import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
 const UnionTypeBase = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseProps) => {
   const [fieldType, setFieldType] = React.useState(type);
+  const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
     <FieldWrapper ancestorsCount={ancestorsCount}>
       <SingleColumnWrapper>
@@ -35,6 +37,13 @@ const UnionTypeBase = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeB
           widgetProps={{ options: schemaTypes, dense: true }}
         />
       </SingleColumnWrapper>
+      <RowButtons
+        nullable={fieldNullable}
+        onNullable={(checked) => {
+          setFieldNullable(checked);
+          onChange('nullable', checked);
+        }}
+      />
     </FieldWrapper>
   );
 };

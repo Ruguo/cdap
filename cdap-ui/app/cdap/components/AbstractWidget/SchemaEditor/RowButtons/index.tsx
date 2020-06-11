@@ -20,6 +20,7 @@ import Box from '@material-ui/core/Box';
 import { Nullable } from 'components/AbstractWidget/SchemaEditor/Nullable';
 import AddRowButton from 'components/AbstractWidget/SchemaEditor/RowButtons/AddRowButton';
 import RemoveRowButton from 'components/AbstractWidget/SchemaEditor/RowButtons/RemoveRowButton';
+import If from 'components/If';
 
 const RowButtonWrapper = withStyles(() => {
   return {
@@ -34,16 +35,20 @@ const RowButtonWrapper = withStyles(() => {
 interface IRowButtonsProps {
   nullable: boolean;
   onNullable: (checked: boolean) => void;
-  onAdd: () => void;
-  onRemove: () => void;
+  onAdd?: () => void;
+  onRemove?: () => void;
 }
 
 function RowButtons({ nullable, onNullable, onAdd, onRemove }: IRowButtonsProps) {
   return (
     <RowButtonWrapper>
       <Nullable onNullable={onNullable} nullable={nullable} />
-      <AddRowButton onAdd={onAdd} />
-      <RemoveRowButton onRemove={onRemove} />
+      <If condition={typeof onAdd === 'function'}>
+        <AddRowButton onAdd={onAdd} />
+      </If>
+      <If condition={typeof onRemove === 'function'}>
+        <RemoveRowButton onRemove={onRemove} />
+      </If>
     </RowButtonWrapper>
   );
 }

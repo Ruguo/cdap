@@ -25,10 +25,18 @@ import {
   schemaTypes,
   defaultFieldType,
 } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
-const FieldTypeBase = ({ ancestorsCount, name, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const FieldTypeBase = ({
+  ancestorsCount,
+  name,
+  type,
+  nullable,
+  onChange,
+  onAdd,
+  onRemove,
+}: IFieldTypeBaseProps) => {
   const [fieldName, setFieldName] = React.useState(name);
   const [fieldType, setFieldType] = React.useState(type);
   const [fieldNullable, setFieldNullable] = React.useState(nullable);
@@ -59,11 +67,9 @@ const FieldTypeBase = ({ ancestorsCount, name, type, nullable, onChange }: IFiel
           onChange('nullable', checked);
         }}
         onAdd={() => {
-          onChange('add', defaultFieldType);
+          onAdd(defaultFieldType);
         }}
-        onRemove={() => {
-          onChange('remove');
-        }}
+        onRemove={onRemove}
       />
     </FieldWrapper>
   );

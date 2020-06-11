@@ -15,9 +15,12 @@
  */
 
 import * as React from 'react';
-import { IFlattenRowType } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
+import {
+  IFlattenRowType,
+  IFieldIdentifier,
+  IOnChangePayload,
+} from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import { IFieldIdentifier } from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
 import { FieldType } from 'components/AbstractWidget/SchemaEditor/FieldType';
 import { UnionType } from 'components/AbstractWidget/SchemaEditor/UnionType';
 import { MapType } from 'components/AbstractWidget/SchemaEditor/MapType';
@@ -33,7 +36,7 @@ interface IFieldRowState {
 
 interface IFieldRowProps {
   field: IFlattenRowType;
-  onChange: (id: IFieldIdentifier, property, value: string | boolean) => void;
+  onChange: (id: IFieldIdentifier, payload: IOnChangePayload) => void;
 }
 
 class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
@@ -65,9 +68,38 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
     }
     const { onChange, field } = this.props;
     if (onChange) {
-      this.props.onChange({ id: field.id, ancestors: field.ancestors }, property, value);
+      this.props.onChange(
+        { id: field.id, ancestors: field.ancestors },
+        {
+          property,
+          value,
+          type: 'update',
+        }
+      );
     }
     return;
+  };
+
+  public onAdd = (defaultValue) => {
+    const { onChange, field } = this.props;
+    const { id, ancestors } = field;
+    if (onChange) {
+      this.props.onChange(
+        { id, ancestors },
+        {
+          defaultValue,
+          type: 'add',
+        }
+      );
+    }
+  };
+
+  public onRemove = () => {
+    const { onChange, field } = this.props;
+    const { id, ancestors } = field;
+    if (onChange) {
+      onChange({ id, ancestors }, { type: 'remove' });
+    }
   };
 
   public RenderSubType = (field) => {
@@ -81,6 +113,8 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
             type={this.props.field.type}
             nullable={this.props.field.nullable}
             onChange={this.onChange}
+            onAdd={this.onAdd}
+            onRemove={this.onRemove}
           />
         );
       case 'array-simple-type':
@@ -92,6 +126,8 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
             type={this.props.field.type}
             nullable={this.props.field.nullable}
             onChange={this.onChange}
+            onAdd={this.onAdd}
+            onRemove={this.onRemove}
           />
         );
       case 'enum-symbol':
@@ -100,6 +136,8 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
             ancestorsCount={this.props.field.ancestors.length}
             typeProperties={this.props.field.typeProperties}
             onChange={this.onChange}
+            onAdd={this.onAdd}
+            onRemove={this.onRemove}
           />
         );
       case 'map-keys-complex-type-root':
@@ -113,6 +151,8 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
             type={this.props.field.type}
             nullable={this.props.field.nullable}
             onChange={this.onChange}
+            onAdd={this.onAdd}
+            onRemove={this.onRemove}
           />
         );
       case 'union-simple-type':
@@ -123,6 +163,8 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
             type={this.props.field.type}
             nullable={this.props.field.nullable}
             onChange={this.onChange}
+            onAdd={this.onAdd}
+            onRemove={this.onRemove}
           />
         );
       default:
