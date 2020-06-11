@@ -15,7 +15,7 @@
  */
 
 class HydratorUpgradeService {
-  constructor($rootScope, myPipelineApi, $state, $uibModal, HydratorPlusPlusConfigStore, HydratorPlusPlusLeftPanelStore, $q, PipelineAvailablePluginsActions, myAlertOnValium, NonStorePipelineErrorFactory) {
+  constructor($rootScope, myPipelineApi, $state, $uibModal, HydratorPlusPlusConfigStore, HydratorPlusPlusLeftPanelStore, $q, PipelineAvailablePluginsActions, myAlertOnValium, NonStorePipelineErrorFactory, $stateParams) {
     this.$rootScope = $rootScope;
     this.myPipelineApi = myPipelineApi;
     this.$state = $state;
@@ -26,6 +26,7 @@ class HydratorUpgradeService {
     this.PipelineAvailablePluginsActions = PipelineAvailablePluginsActions;
     this.myAlertOnValium = myAlertOnValium;
     this.NonStorePipelineErrorFactory = NonStorePipelineErrorFactory;
+    this.$stateParams = $stateParams;
   }
 
   _checkVersionIsInRange(range, version) {
@@ -73,9 +74,10 @@ class HydratorUpgradeService {
     let activePipelineType = this.HydratorPlusPlusConfigStore.getState().artifact.name;
 
     if (pipelineConfig.artifact.name !== activePipelineType) {
+      console.log('PARAMA', this.$stateParams);
       this.PipelineAvailablePluginsActions.fetchPluginsForUpgrade(
         {
-          namespace: this.$state.params.namespace,
+          namespace: this.$state.params.namespace || 'default',
           pipelineType: pipelineConfig.artifact.name,
           version: this.$rootScope.cdapVersion
         }

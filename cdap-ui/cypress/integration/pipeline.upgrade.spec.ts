@@ -15,6 +15,9 @@
  */
 
 import * as Helpers from '../helpers';
+import * as pipeline1 from '../fixtures/pipeline1.json';
+import {dataCy, generateDraftFromPipeline} from '../helpers';
+
 let headers = {};
 describe('Pipeline Upgrade should work fine', () => {
   // Uses API call to login instead of logging in manually through UI
@@ -69,5 +72,29 @@ describe('Pipeline Upgrade should work fine', () => {
       cy.get('.cdap-modal.cask-market');
       cy.contains('Hub');
     });
+  });
+
+  it.only("should upgrade pipelines that are saved in drafts", () => {
+    cy.visit("/cdap/ns/default/pipelines/drafts");
+    const pipelineName = `${pipeline1.name}-${Date.now()}`;
+    const pipelineDraft = generateDraftFromPipeline({...pipeline1, name: pipelineName});
+    cy.upload_draft_via_api(headers, pipelineDraft).then(resp => {
+      console.log("uploaded?", resp);
+    });
+    cy.get(dataCy(`draft-${pipelineName}`)).should("be.visible");
+    cy.get(dataCy(`draft-${pipelineName}`)).click();
+    cy.get(dataCy("upgrade-modal-header")).should("contain", "Import Pipeline");
+    cy.get(dataCy("upgrade-modal-body")).should(
+      "contain",
+      "Your pipeline cannot be imported because of the following issues:"
+    );
+    // cy.get(dataCy('import-error-row-0')).should('contain','Pipeline Artifact');
+    cy.get(dataCy('import-error-row-0')).should('contain','File');
+    cy.get(dataCy('import-error-row-1')).should('contain','File2');
+    cy.get(dataCy('fix-all-btn')).click();
+    cy.get(dataCy('plugin-node-File-batchsource-0')).should('be.visible');
+    cy.get(dataCy('plugin-node-File-batchsink-1')).should('be.visible');
+    cy.get(dataCy('deploy-pipeline-btn')).click();
+    cy.get(dataCy('Deployed')).should('be.visible');
   });
 });

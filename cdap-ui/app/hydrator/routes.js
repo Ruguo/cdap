@@ -119,7 +119,7 @@ angular.module(PKG.name + '.feature.hydrator')
             rValidNamespace: function($stateParams, myNamespace, myHelpers){
               return myHelpers.validNamespaceResolver($stateParams, myNamespace);
             },
-            rConfig: function(rCDAPVersion, $stateParams, mySettings, $q, myHelpers, $window, HydratorPlusPlusHydratorService) {
+            rConfig: function(rCDAPVersion, $stateParams, mySettings, $q, myHelpers, $window, HydratorPlusPlusHydratorService, HydratorUpgradeService) {
               var defer = $q.defer();
               if ($stateParams.data) {
                 // This is being used while cloning a published a pipeline.
@@ -150,8 +150,10 @@ angular.module(PKG.name + '.feature.hydrator')
                       if (isVersionInRange) {
                         draft.artifact.version = rCDAPVersion;
                       } else {
-                        defer.resolve(false);
-                        return;
+                        console.log('invalid draft, trying to upgrade');
+                        HydratorUpgradeService.openUpgradeModal(draft);
+                        // defer.resolve(false);
+                        // return;
                       }
                       defer.resolve(draft);
                     } else {
