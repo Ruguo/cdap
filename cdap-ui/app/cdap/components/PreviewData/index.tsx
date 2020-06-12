@@ -25,6 +25,9 @@ import { messageTextStyle } from 'components/PreviewData/Table';
 import PreviewTableContainer from 'components/PreviewData/TableContainer';
 import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import ThemeWrapper from 'components/ThemeWrapper';
+import T from 'i18n-react';
+
+const I18N_PREFIX = 'features.PreviewData';
 
 const styles = () => {
   return {
@@ -63,21 +66,18 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
     setPreviewData(updatedPreview);
   };
 
-  useEffect(
-    () => {
-      if (previewId) {
-        fetchPreview(
-          selectedNode,
-          previewId,
-          stages,
-          connections,
-          setPreviewLoading,
-          updatePreviewCb
-        );
-      }
-    },
-    [previewId]
-  );
+  useEffect(() => {
+    if (previewId) {
+      fetchPreview(
+        selectedNode,
+        previewId,
+        stages,
+        connections,
+        setPreviewLoading,
+        updatePreviewCb
+      );
+    }
+  }, [previewId]);
 
   const getTableData = () => {
     let inputs = {};
@@ -98,7 +98,11 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
 
   const loadingMsg = (cls) => (
     <div className={classes.headingContainer}>
-      <Heading type={HeadingTypes.h3} label={'Fetching preview data'} className={cls.messageText} />
+      <Heading
+        type={HeadingTypes.h3}
+        label={`${I18N_PREFIX}.loading`}
+        className={cls.messageText}
+      />
       <LoadingSVGCentered />
     </div>
   );
@@ -107,7 +111,7 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
     <div className={classes.headingContainer}>
       <Heading
         type={HeadingTypes.h3}
-        label={'Run preview to generate preview data.'}
+        label={T.translate(`${I18N_PREFIX}.runPreview`)}
         className={cls.messageText}
       />
     </div>
