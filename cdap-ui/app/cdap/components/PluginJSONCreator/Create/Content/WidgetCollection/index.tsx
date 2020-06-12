@@ -38,6 +38,9 @@ const styles = (theme): StyleRules => {
       position: 'relative',
       padding: '7px 10px 5px',
       margin: '25px',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     addWidgetLabel: {
       fontSize: '12px',
@@ -54,7 +57,7 @@ const styles = (theme): StyleRules => {
       verticalAlign: 'middle',
     },
     widgetContainer: {
-      width: 'calc(100%-1000px)',
+      width: '90%',
     },
     widgetDivider: {
       width: '100%',

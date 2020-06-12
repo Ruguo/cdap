@@ -14,17 +14,17 @@
  * the License.
  */
 
-import * as React from 'react';
-import PropTypes from 'prop-types';
-import withStyles, { WithStyles, StyleRules } from '@material-ui/core/styles/withStyles';
-import { IWidgetProperty, IPluginProperty } from 'components/ConfigurationGroup/types';
-import DescriptionTooltip from 'components/ConfigurationGroup/PropertyRow/DescriptionTooltip';
-import AbstractWidget from 'components/AbstractWidget';
+import withStyles, { StyleRules, WithStyles } from '@material-ui/core/styles/withStyles';
 import classnames from 'classnames';
-import { objectQuery } from 'services/helpers';
+import AbstractWidget from 'components/AbstractWidget';
+import DescriptionTooltip from 'components/ConfigurationGroup/PropertyRow/DescriptionTooltip';
+import { IPluginProperty, IWidgetProperty } from 'components/ConfigurationGroup/types';
+import { IErrorObj } from 'components/ConfigurationGroup/utilities';
 import If from 'components/If';
 import ThemeWrapper from 'components/ThemeWrapper';
-import { IErrorObj } from 'components/ConfigurationGroup/utilities';
+import PropTypes from 'prop-types';
+import * as React from 'react';
+import { objectQuery } from 'services/helpers';
 
 const styles = (theme): StyleRules => {
   return {

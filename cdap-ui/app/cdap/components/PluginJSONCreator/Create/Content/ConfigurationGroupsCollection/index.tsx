@@ -119,7 +119,7 @@ const ConfigurationGroupsCollectionView: React.FC<ICreateContext & WithStyles<ty
 
       // Delete all the widget information that belong to the group
       const newWidgetToInfo = localWidgetToInfo;
-      widgets.map((widget) => {
+      widgets.forEach((widget) => {
         delete newWidgetToInfo[widget];
       });
       setLocalWidgetToInfo(newWidgetToInfo);
