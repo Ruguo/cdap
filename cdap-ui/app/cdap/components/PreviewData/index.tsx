@@ -26,6 +26,8 @@ import PreviewTableContainer from 'components/PreviewData/TableContainer';
 import withStyles, { WithStyles } from '@material-ui/core/styles/withStyles';
 import ThemeWrapper from 'components/ThemeWrapper';
 import T from 'i18n-react';
+import { extractErrorMessage } from 'components/Replicator/utilities';
+import classnames from 'classnames';
 
 const I18N_PREFIX = 'features.PreviewData';
 
@@ -61,9 +63,14 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
 
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewData, setPreviewData] = useState<IPreviewData>({});
+  const [error, setError] = useState(null);
 
   const updatePreviewCb = (updatedPreview: IPreviewData) => {
     setPreviewData(updatedPreview);
+  };
+
+  const errorCb = (err: any) => {
+    setError(extractErrorMessage(err));
   };
 
   useEffect(() => {
@@ -74,7 +81,8 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
         stages,
         connections,
         setPreviewLoading,
-        updatePreviewCb
+        updatePreviewCb,
+        errorCb
       );
     }
   }, [previewId]);
@@ -97,10 +105,10 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
   const tableData: ITableData = getTableData();
 
   const loadingMsg = (cls) => (
-    <div className={classes.headingContainer}>
+    <div className={cls.headingContainer}>
       <Heading
         type={HeadingTypes.h3}
-        label={`${I18N_PREFIX}.loading`}
+        label={T.translate(`${I18N_PREFIX}.loading`)}
         className={cls.messageText}
       />
       <LoadingSVGCentered />
@@ -108,7 +116,7 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
   );
 
   const noPreviewDataMsg = (cls) => (
-    <div className={classes.headingContainer}>
+    <div className={cls.headingContainer}>
       <Heading
         type={HeadingTypes.h3}
         label={T.translate(`${I18N_PREFIX}.runPreview`)}
@@ -117,10 +125,22 @@ const PreviewDataViewBase: React.FC<IPreviewDataViewProps> = ({
     </div>
   );
 
+  const errorMsg = (cls) => (
+    <div className={classnames('text-danger', cls.headingContainer)}>
+      <Heading
+        type={HeadingTypes.h3}
+        label={T.translate(`${I18N_PREFIX}.errorHeader`)}
+        className={cls.messageText}
+      />
+      <span>{error}</span>
+    </div>
+  );
+
   return (
     <div>
       <If condition={!previewId}>{noPreviewDataMsg(classes)}</If>
       <If condition={previewLoading}>{loadingMsg(classes)}</If>
+      <If condition={error}>{errorMsg(classes)}</If>
 
       <If condition={!previewLoading && previewId && !isEmpty(previewData)}>
         <PreviewTableContainer
