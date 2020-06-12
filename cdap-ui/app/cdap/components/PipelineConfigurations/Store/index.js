@@ -188,7 +188,7 @@ const resetRuntimeArgToResolvedValue = (index, runtimeArgs, resolvedMacros) => {
 };
 
 const getRuntimeArgsForDisplay = (currentRuntimeArgs, macrosMap) => {
-  let providedMacros = {};
+  const macrosWithIds = {};
   let runtimeArgsMap = {};
 
   // holds provided macros in an object here even though we don't need the value,
@@ -197,8 +197,8 @@ const getRuntimeArgsForDisplay = (currentRuntimeArgs, macrosMap) => {
     currentRuntimeArgs.pairs.forEach((currentPair) => {
       let key = currentPair.key;
       runtimeArgsMap[key] = currentPair.value || '';
-      if (currentPair.notDeletable && currentPair.provided) {
-        providedMacros[key] = currentPair.value;
+      if (currentPair.uniqueId && Object.prototype.hasOwnProperty.call(macrosMap, key)) {
+        macrosWithIds[key] = currentPair.uniqueId;
       }
     });
     currentRuntimeArgs.pairs = currentRuntimeArgs.pairs.filter((keyValuePair) => {
@@ -210,11 +210,11 @@ const getRuntimeArgsForDisplay = (currentRuntimeArgs, macrosMap) => {
       key: macroKey,
       value: runtimeArgsMap[macroKey] || '',
       showReset: macrosMap[macroKey].showReset,
-      uniqueId: 'id-' + uuidV4(),
+      uniqueId: macrosWithIds[macroKey] || 'id-' + uuidV4(),
       notDeletable: true,
-      provided: providedMacros.hasOwnProperty(macroKey),
     };
   });
+  // Placing macros in the front so they're displayed at top.
   currentRuntimeArgs.pairs = macros.concat(currentRuntimeArgs.pairs);
   return currentRuntimeArgs;
 };
