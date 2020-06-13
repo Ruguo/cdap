@@ -80,14 +80,13 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
     return;
   };
 
-  public onAdd = (defaultValue) => {
+  public onAdd = () => {
     const { onChange, field } = this.props;
     const { id, ancestors } = field;
     if (onChange) {
       this.props.onChange(
         { id, ancestors },
         {
-          defaultValue,
           type: 'add',
         }
       );
@@ -173,6 +172,7 @@ class FieldRow extends React.Component<IFieldRowProps, IFieldRowState> {
   };
 
   public render() {
+    console.log('Re-rendering every row');
     return this.RenderSubType(this.props.field);
   }
 }

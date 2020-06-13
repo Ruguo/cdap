@@ -33,8 +33,8 @@ const RowButtonWrapper = withStyles(() => {
 })(Box);
 
 interface IRowButtonsProps {
-  nullable: boolean;
-  onNullable: (checked: boolean) => void;
+  nullable?: boolean;
+  onNullable?: (checked: boolean) => void;
   onAdd?: () => void;
   onRemove?: () => void;
 }
@@ -42,11 +42,13 @@ interface IRowButtonsProps {
 function RowButtons({ nullable, onNullable, onAdd, onRemove }: IRowButtonsProps) {
   return (
     <RowButtonWrapper>
-      <Nullable onNullable={onNullable} nullable={nullable} />
-      <If condition={typeof onAdd === 'function'}>
+      <If condition={typeof onNullable === 'function'} invisible>
+        <Nullable onNullable={onNullable} nullable={nullable} />
+      </If>
+      <If condition={typeof onAdd === 'function'} invisible>
         <AddRowButton onAdd={onAdd} />
       </If>
-      <If condition={typeof onRemove === 'function'}>
+      <If condition={typeof onRemove === 'function'} invisible>
         <RemoveRowButton onRemove={onRemove} />
       </If>
     </RowButtonWrapper>

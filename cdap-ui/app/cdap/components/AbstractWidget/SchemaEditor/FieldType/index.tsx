@@ -66,9 +66,7 @@ const FieldTypeBase = ({
           setFieldNullable(checked);
           onChange('nullable', checked);
         }}
-        onAdd={() => {
-          onAdd(defaultFieldType);
-        }}
+        onAdd={onAdd}
         onRemove={onRemove}
       />
     </FieldWrapper>

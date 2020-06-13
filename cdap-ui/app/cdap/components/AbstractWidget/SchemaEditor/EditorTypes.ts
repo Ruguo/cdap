@@ -34,7 +34,7 @@ type IInternalFieldType =
 interface IFlattenRowType {
   id: string;
   name?: string;
-  type?: ISimpleType | IComplexTypeNames;
+  type?: 'schema' | ISimpleType | IComplexTypeNames;
   internalType: IInternalFieldType;
   nullable?: boolean;
   ancestors: string[];
@@ -54,14 +54,13 @@ interface IFieldTypeBaseProps {
   typeProperties?: Record<string, any>;
   ancestorsCount: number;
   onChange: (property: string, value?: string | boolean | Record<string, string>) => void;
-  onAdd: (defaultValue) => void;
+  onAdd: () => void;
   onRemove: () => void;
 }
 
 interface IOnChangePayload {
   property?: string;
   value?: string;
-  defaultValue?: string;
   type: 'update' | 'add' | 'remove';
 }
 

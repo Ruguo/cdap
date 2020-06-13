@@ -15,27 +15,12 @@
  */
 
 import {
-  ISchemaType,
-  IDisplayType,
-  IFieldType,
-  IFieldTypeNullable,
-  ILogicalTypeBase,
-} from 'components/AbstractWidget/SchemaEditor/SchemaTypes';
-import {
-  IInternalFieldType,
   IFlattenRowType,
   IFieldIdentifier,
   IOnChangePayload,
 } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import uuidV4 from 'uuid/v4';
 import isNil from 'lodash/isNil';
-import {
-  getComplexTypeName,
-  isNullable,
-  isComplexType,
-  getNonNullableType,
-  getSimpleType,
-} from 'components/AbstractWidget/SchemaEditor/SchemaHelpers';
 import {
   logicalTypes,
   defaultTimeStampTypeProperties,
@@ -48,23 +33,21 @@ import {
   defaultRecordType,
   defaultUnionType,
 } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
-import isObject from 'lodash/isObject';
 import isEmpty from 'lodash/isEmpty';
-
-type ITypeProperties = Record<string, any>;
-
-interface INode {
-  name?: string;
-  children?: Record<string, INode>;
-  id: string;
-  internalType: IInternalFieldType;
-  nullable?: boolean;
-  type?: IDisplayType;
-  typeProperties?: ITypeProperties;
-}
+import {
+  INode,
+  parseSchema,
+  parseUnionType,
+  parseArrayType,
+  parseEnumType,
+  parseMapType,
+  IOrderedChildren,
+  parseComplexType,
+} from 'components/AbstractWidget/SchemaEditor/Context/SchemaParser';
+import { FlatSchema } from 'components/AbstractWidget/SchemaEditor/Context/FlatSchema';
 
 function getInternalType(tree: INode) {
-  const hasChildren = Object.keys(tree.children).length;
+  const hasChildren = tree.children ? Object.keys(tree.children).length : 0;
   if (tree.internalType === 'record-field-simple-type' && hasChildren) {
     return 'record-field-complex-type-root';
   }
@@ -98,254 +81,20 @@ function getInternalType(tree: INode) {
   return tree.internalType;
 }
 
-function parseUnionType(type): Record<string, INode> {
-  const result: Record<string, INode> = {} as Record<string, INode>;
-  for (const subType of type) {
-    const id = uuidV4();
-    if (isComplexType(subType)) {
-      const typeName = getComplexTypeName(subType);
-      result[id] = {
-        id,
-        type: typeName,
-        internalType: 'union-complex-type-root',
-        children: parseComplexType(subType),
-      };
-    } else {
-      result[id] = {
-        id,
-        type: subType,
-        nullable: false,
-        internalType: 'union-simple-type',
-      };
-    }
-  }
-  return result;
-}
-
-function parseArrayType(type): Record<string, INode> {
-  const nullable = isNullable(type);
-  const t = getNonNullableType(type);
-  const id = uuidV4();
-  if (t.items && !isComplexType(t.items)) {
-    return {
-      [id]: {
-        internalType: 'array-simple-type',
-        id,
-        nullable,
-        type: getNonNullableType(t.items),
-      },
-    };
-  }
-  return {
-    [id]: {
-      internalType: 'array-complex-type-root',
-      id,
-      nullable,
-      type: getComplexTypeName(t.items),
-      children: parseComplexType(t.items),
-    },
-  };
-}
-
-function parseEnumType(type): Record<string, INode> {
-  const nullable = isNullable(type);
-  const t = getNonNullableType(type);
-  const result = {};
-  for (const symbol of t.symbols) {
-    const id = uuidV4();
-    result[id] = {
-      id,
-      internalType: 'enum-symbol',
-      nullable,
-      typeProperties: {
-        symbol,
-      },
-    };
-  }
-  return result;
-}
-
-function getMapSubType(type, internalTypeName): INode {
-  const id = uuidV4();
-  if (!isComplexType(type)) {
-    return {
-      id,
-      internalType: internalTypeName.simpleType,
-      nullable: isNullable(type),
-      type: getNonNullableType(type),
-    };
-  } else {
-    const complexType = getComplexTypeName(type);
-    const nullable = isNullable(type);
-    return {
-      children: parseComplexType(type),
-      id,
-      internalType: internalTypeName.complexType,
-      type: complexType,
-      nullable,
-    };
-  }
-}
-
-function parseMapType(type): Record<string, INode> {
-  const t = getNonNullableType(type);
-  const keysType = t.keys;
-  const valuesType = t.values;
-  const result: Record<string, INode> = {};
-  const mapKeysSubType = getMapSubType(keysType, {
-    simpleType: 'map-keys-simple-type',
-    complexType: 'map-keys-complex-type-root',
-  });
-  const mapValuesSubType = getMapSubType(valuesType, {
-    simpleType: 'map-values-simple-type',
-    complexType: 'map-values-complex-type-root',
-  });
-  result[mapKeysSubType.id] = mapKeysSubType;
-  result[mapValuesSubType.id] = mapValuesSubType;
-  return result;
-}
-
-function parseComplexType(type): Record<string, INode> {
-  const complexTypeName = getComplexTypeName(type);
-  let record: Record<string, INode> = {};
-  switch (complexTypeName) {
-    case 'enum':
-      record = parseEnumType(type);
-      break;
-    case 'array':
-      record = parseArrayType(type);
-      break;
-    case 'record': {
-      const schema: ISchemaType = { name: 'etlSchemaBody', schema: getNonNullableType(type) };
-      const parsedSchema = parseSchema(schema);
-      record[parsedSchema.id] = parsedSchema;
-      break;
-    }
-    case 'union':
-      record = parseUnionType(type);
-      break;
-    case 'map':
-      record = parseMapType(type);
-      break;
-    default:
-      record = {};
-  }
-  return record;
-}
-
-function checkForLogicalType(field: IFieldType | IFieldTypeNullable) {
-  let type = field.type;
-  type = getNonNullableType(type) as ILogicalTypeBase;
-  switch (type.logicalType) {
-    case 'decimal':
-      return {
-        typeProperties: {
-          type: 'bytes',
-          logicalType: type.logicalType,
-          precision: type.precision,
-          scale: type.scale,
-        },
-      };
-    case 'date':
-      return {
-        typeProperties: {
-          type: 'int',
-          logicalType: type.logicalType,
-        },
-      };
-    case 'time-micros':
-      return {
-        typeProperties: {
-          type: 'long',
-          logicalType: type.logicalType,
-        },
-      };
-    case 'timestamp-micros':
-      return {
-        typeProperties: {
-          type: 'long',
-          logicalType: type.logicalType,
-        },
-      };
-    default:
-      return {};
-  }
-}
-
-function parseSubTree(field: IFieldType | IFieldTypeNullable): INode {
-  const { type, name } = field;
-  const nullable = isNullable(type);
-  const complexType = isComplexType(type);
-  const t = getNonNullableType(type);
-  if (!complexType) {
-    return {
-      name,
-      id: uuidV4(),
-      internalType: 'record-field-simple-type',
-      nullable,
-      type: getSimpleType(t),
-      ...checkForLogicalType(field),
-    };
-  }
-  return {
-    name,
-    children: parseComplexType(type),
-    id: uuidV4(),
-    internalType: 'record-field-complex-type-root',
-    nullable,
-    type: getComplexTypeName(t),
-  };
-}
-
-function parseSchema(avroSchema: ISchemaType, name = 'etlSchemaBody'): INode {
-  const fields = avroSchema.schema.fields;
-  const root: INode = {
-    name,
-    internalType: 'schema',
-    id: uuidV4(),
-    children: {} as Record<string, INode>,
-  };
-  for (const field of fields) {
-    const child = parseSubTree(field);
-    root.children[child.id] = child;
-  }
-  return root;
-}
-
-function flattenTree(schemaTree: INode, ancestors = []) {
-  const result: IFlattenRowType[] = [];
-  if (!schemaTree) {
-    return [];
-  }
-  const { internalType, name, id, children, type, typeProperties, nullable } = schemaTree;
-  result.push({
-    internalType,
-    name,
-    id,
-    type,
-    typeProperties,
-    ancestors,
-    nullable,
-  });
-  if (isObject(children) && Object.keys(children).length) {
-    for (const [_, value] of Object.entries(children)) {
-      result.push(...flattenTree(value, ancestors.concat(id)));
-    }
-  }
-  return result;
-}
-
 const branchCount = (tree: INode): number => {
-  let count = 1;
+  let count = 0;
   if (tree && !isEmpty(tree.children) && Object.keys(tree.children).length) {
-    Object.values(tree.children).forEach((child: INode) => {
+    // skip 'order' array which is under children.
+    const children = Object.values(tree.children).filter((child) => !Array.isArray(child));
+    count += children.length;
+    children.forEach((child: INode) => {
       count += branchCount(child);
     });
   }
   return count;
 };
 
-const initChildren = (tree: INode, type): Record<string, INode> => {
+const initChildren = (type): IOrderedChildren => {
   switch (type) {
     case 'array':
       return parseArrayType(defaultArrayType);
@@ -359,7 +108,7 @@ const initChildren = (tree: INode, type): Record<string, INode> => {
     case 'union':
       return parseUnionType(defaultUnionType);
     default:
-      return {};
+      return;
   }
 };
 
@@ -382,9 +131,9 @@ const initTypeProperties = (tree: INode) => {
 };
 
 interface ISchemaTree {
-  getTree: () => INode;
-  getFlattedTree: () => IFlattenRowType[];
-  update: (
+  getSchemaTree: () => INode;
+  getFlatSchema: () => IFlattenRowType[];
+  onChange: (
     fieldId: IFieldIdentifier,
     currentIndex: number,
     onChangePayload: IOnChangePayload
@@ -396,15 +145,119 @@ class SchemaTreeBase implements ISchemaTree {
   private flatTree: IFlattenRowType[];
   constructor(avroSchema) {
     this.schemaTree = parseSchema(avroSchema);
-    this.flatTree = flattenTree(this.schemaTree);
+    this.flatTree = FlatSchema(this.schemaTree);
   }
 
-  public getTree = () => this.schemaTree;
-  public getFlattedTree = () => this.flatTree;
+  public getSchemaTree = () => this.schemaTree;
+  public getFlatSchema = () => this.flatTree;
 
-  private addToTree = (tree: INode, fieldId: IFieldIdentifier, { defaultValue }) => {
-    return;
+  private insertNewIdToOrder = (order = [], referenceId) => {
+    const id = uuidV4();
+    // +1 to add next to the current element.
+    const currentIndexOfChild = order.findIndex((c) => c === referenceId) + 1;
+    order = [...order.slice(0, currentIndexOfChild), id, ...order.slice(currentIndexOfChild)];
+    return { id, order };
   };
+  private addNewEnumSymbol = (tree: INode, fieldId: IFieldIdentifier) => {
+    if (!tree.children || (tree.children && !Array.isArray(tree.children.order))) {
+      return { tree, newTree: undefined, currentField: undefined };
+    }
+    const { id = uuidV4(), order = [] } = this.insertNewIdToOrder(
+      tree.children.order as string[],
+      fieldId.id
+    );
+    tree.children.order = order;
+    tree.children[id] = {
+      id,
+      internalType: 'enum-symbol',
+      typeProperties: {
+        symbol: '',
+      },
+    };
+    return { tree, newTree: tree.children[id], currentField: tree.children[fieldId.id] };
+  };
+
+  private addNewFieldType = (tree: INode, fieldId: IFieldIdentifier) => {
+    if (!tree.children || (tree.children && !Array.isArray(tree.children.order))) {
+      return { tree, newTree: undefined, currentField: undefined };
+    }
+    const { id = uuidV4(), order = [] } = this.insertNewIdToOrder(
+      tree.children.order as string[],
+      fieldId.id
+    );
+    tree.children.order = order;
+    tree.children[id] = {
+      id,
+      internalType: 'record-field-simple-type',
+      nullable: false,
+      type: 'string',
+      name: '',
+    };
+    return { tree, newTree: tree.children[id], currentField: tree.children[fieldId.id] };
+  };
+
+  private addNewUnionType = (tree: INode, fieldId: IFieldIdentifier) => {
+    if (!tree.children || (tree.children && !Array.isArray(tree.children.order))) {
+      return { tree, newTree: undefined, currentField: undefined };
+    }
+    const { id = uuidV4(), order = [] } = this.insertNewIdToOrder(
+      tree.children.order as string[],
+      fieldId.id
+    );
+    tree.children.order = order;
+    tree.children[id] = {
+      id,
+      internalType: 'union-simple-type',
+      nullable: false,
+      type: 'string',
+    };
+    return { tree, newTree: tree.children[id], currentField: tree.children[fieldId.id] };
+  };
+
+  private addSpecificTypesToTree = (tree: INode, fieldId: IFieldIdentifier) => {
+    switch (tree.type) {
+      case 'enum':
+        return this.addNewEnumSymbol(tree, fieldId);
+      case 'schema':
+        return this.addNewFieldType(tree, fieldId);
+      case 'union':
+        return this.addNewUnionType(tree, fieldId);
+      default:
+        return { tree: undefined, newTree: undefined, currentField: undefined };
+    }
+  };
+
+  private addToTree = (
+    tree: INode,
+    fieldId: IFieldIdentifier
+  ): {
+    tree: INode;
+    newTree: INode;
+    currentField: INode;
+  } => {
+    if (!tree) {
+      return { tree: undefined, newTree: undefined, currentField: undefined };
+    }
+    if (fieldId.ancestors.length === 1) {
+      return this.addSpecificTypesToTree(tree, fieldId);
+    }
+    const { tree: child, newTree, currentField } = this.addToTree(
+      tree.children[fieldId.ancestors[1]],
+      { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) }
+    );
+    return {
+      tree: {
+        ...tree,
+        children: {
+          ...tree.children,
+          [child.id]: child,
+        },
+      },
+      newTree,
+      currentField,
+    };
+  };
+
   private remove = (currentIndex: number) => {
     return;
   };
@@ -421,21 +274,24 @@ class SchemaTreeBase implements ISchemaTree {
     if (!tree) {
       return { childrenCount: undefined, tree: undefined, newTree: undefined };
     }
-    if (fieldId.ancestors.length === 1) {
-      if (fieldId.id === tree.id) {
-        let childrenInBranch = 0;
-        tree[property] = value;
-        if (property === 'type') {
-          childrenInBranch = branchCount(tree);
-          tree.children = initChildren(tree, value);
-          tree.internalType = getInternalType(tree);
-          tree.typeProperties = initTypeProperties(tree);
-          return { childrenCount: childrenInBranch, tree, newTree: tree };
-        }
-        return { childrenCount: childrenInBranch, tree, newTree: undefined };
+    if (fieldId.ancestors.length === 1 && !isEmpty(tree.children[fieldId.id])) {
+      tree.children[fieldId.id][property] = value;
+      let childrenInBranch = 0;
+      let newChildTree: INode;
+      if (property === 'type') {
+        childrenInBranch = branchCount(tree.children[fieldId.id]);
+        tree.children[fieldId.id].children = initChildren(value);
+        newChildTree = tree.children[fieldId.id];
+        tree.children[fieldId.id].internalType = getInternalType(tree.children[fieldId.id]);
+        tree.children[fieldId.id].typeProperties = initTypeProperties(tree.children[fieldId.id]);
       }
-      return undefined;
+      return {
+        tree,
+        childrenCount: childrenInBranch,
+        newTree: newChildTree,
+      };
     }
+
     const { tree: child, childrenCount, newTree } = this.updateTree(
       tree.children[fieldId.ancestors[1]],
       { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) },
@@ -453,43 +309,63 @@ class SchemaTreeBase implements ISchemaTree {
       newTree,
     };
   };
-  public update = (
-    fieldId: IFieldIdentifier,
-    currentIndex: number,
-    { type, defaultValue, property, value }: IOnChangePayload
-  ) => {
-    if (isNil(currentIndex) || currentIndex === -1) {
-      return;
-    }
+
+  private update = (currentIndex: number, { property, value }: Partial<IOnChangePayload>) => {
     this.flatTree[currentIndex][property] = value;
     const matchingEntry = this.flatTree[currentIndex];
-    const idObj = {
-      id: matchingEntry.id,
-      ancestors: matchingEntry.ancestors.concat([matchingEntry.id]),
-    };
     let result: { tree: INode; childrenCount: number; newTree: INode };
     let newFlatSubTree: IFlattenRowType[];
-    switch (type) {
-      case 'update':
-        result = this.updateTree(this.schemaTree, idObj, { property, value });
-        newFlatSubTree = flattenTree(result.newTree, matchingEntry.ancestors);
-        break;
-      // case 'add':
-      //   result = this.addToTree(this.schemaTree, idObj, { defaultValue });
-      //   newFlatSubTree = flattenTree(result.newTree, matchingEntry.ancestors);
-      //   break;
-    }
+    const idObj = { id: matchingEntry.id, ancestors: matchingEntry.ancestors };
+    result = this.updateTree(this.schemaTree, idObj, { property, value });
     this.schemaTree = result.tree;
-    if (result.childrenCount > 1 || result.newTree) {
-      this.flatTree = [
-        ...this.flatTree.slice(0, currentIndex),
-        ...this.flatTree.slice(currentIndex + result.childrenCount),
-      ];
+    this.flatTree = [
+      ...this.flatTree.slice(0, currentIndex),
+      ...this.flatTree.slice(currentIndex + result.childrenCount + (!result.newTree ? 0 : 1)),
+    ];
+    if (result.newTree) {
+      newFlatSubTree = FlatSchema(result.newTree, matchingEntry.ancestors);
       this.flatTree = [
         ...this.flatTree.slice(0, currentIndex),
         ...newFlatSubTree,
         ...this.flatTree.slice(currentIndex),
       ];
+    }
+  };
+
+  private add = (currentIndex) => {
+    const matchingEntry = this.flatTree[currentIndex];
+    let result: { tree: INode; newTree: INode; currentField: INode };
+    let newFlatSubTree: IFlattenRowType[];
+    const idObj = { id: matchingEntry.id, ancestors: matchingEntry.ancestors };
+    result = this.addToTree(this.schemaTree, idObj);
+    newFlatSubTree = FlatSchema(result.newTree, matchingEntry.ancestors);
+    this.schemaTree = result.tree;
+    const currentFieldBranchCount = branchCount(result.currentField);
+    this.flatTree = [
+      ...this.flatTree.slice(0, currentIndex + currentFieldBranchCount + 1),
+      ...newFlatSubTree,
+      ...this.flatTree.slice(currentIndex + currentFieldBranchCount + 1),
+    ];
+  };
+
+  public onChange = (
+    fieldId: IFieldIdentifier,
+    currentIndex: number,
+    { type, property, value }: IOnChangePayload
+  ) => {
+    if (isNil(currentIndex) || currentIndex === -1) {
+      return;
+    }
+    switch (type) {
+      case 'update':
+        this.update(currentIndex, { property, value });
+        break;
+      case 'add':
+        this.add(currentIndex);
+        break;
+      // case 'remove':
+      //   this.remove(currentIndex);
+      //   break;
     }
   };
 }

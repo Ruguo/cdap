@@ -19,43 +19,30 @@ import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/F
 import TextBox from 'components/AbstractWidget/FormInputs/TextBox';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
-import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import { defaultEnumType } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 
 const EnumTypeBase = ({
   ancestorsCount,
   typeProperties,
-  nullable,
   onChange,
   onAdd,
+  onRemove,
 }: IFieldTypeBaseProps) => {
   const { symbol } = typeProperties;
   const [enumSymbol, setEnumSymbol] = React.useState(symbol);
-  const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
     <FieldWrapper ancestorsCount={ancestorsCount}>
-      <SingleColumnWrapper>
-        <TextBox
-          value={enumSymbol}
-          onChange={(value) => {
-            setEnumSymbol(value);
-            onChange('typeProperties', {
-              symbol: value,
-            });
-          }}
-          widgetProps={{ placeholder: 'symbol' }}
-        />
-      </SingleColumnWrapper>
-      <RowButtons
-        nullable={fieldNullable}
-        onNullable={(checked) => {
-          setFieldNullable(checked);
-          onChange('nullable', checked);
+      <TextBox
+        value={enumSymbol}
+        onChange={(value) => {
+          setEnumSymbol(value);
+          onChange('typeProperties', {
+            symbol: enumSymbol,
+          });
         }}
-        onAdd={() => {
-          onAdd(defaultEnumType);
-        }}
+        widgetProps={{ placeholder: 'symbol' }}
       />
+      <RowButtons onRemove={onRemove} onAdd={onAdd} />
     </FieldWrapper>
   );
 };

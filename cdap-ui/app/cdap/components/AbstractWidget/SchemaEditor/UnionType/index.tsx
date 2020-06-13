@@ -16,13 +16,22 @@
 
 import * as React from 'react';
 import { FieldWrapper } from 'components/AbstractWidget/SchemaEditor/FieldType/FieldWrapper';
-import { schemaTypes } from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
+import {
+  schemaTypes,
+  defaultUnionType,
+} from 'components/AbstractWidget/SchemaEditor/SchemaConstants';
 import { SingleColumnWrapper } from 'components/AbstractWidget/SchemaEditor/SingleColumnWrapper';
 import Select from 'components/AbstractWidget/FormInputs/Select';
 import { IFieldTypeBaseProps } from 'components/AbstractWidget/SchemaEditor/EditorTypes';
 import { RowButtons } from 'components/AbstractWidget/SchemaEditor/RowButtons';
 
-const UnionTypeBase = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeBaseProps) => {
+const UnionTypeBase = ({
+  ancestorsCount,
+  type,
+  nullable,
+  onChange,
+  onAdd,
+}: IFieldTypeBaseProps) => {
   const [fieldType, setFieldType] = React.useState(type);
   const [fieldNullable, setFieldNullable] = React.useState(nullable);
   return (
@@ -43,6 +52,7 @@ const UnionTypeBase = ({ ancestorsCount, type, nullable, onChange }: IFieldTypeB
           setFieldNullable(checked);
           onChange('nullable', checked);
         }}
+        onAdd={onAdd}
       />
     </FieldWrapper>
   );

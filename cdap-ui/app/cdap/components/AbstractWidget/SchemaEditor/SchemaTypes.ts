@@ -30,7 +30,7 @@ type ISimpleType =
   | 'timestamp';
 type ILogicalTypeNames = 'timestamp-micros' | 'date' | 'time-micros' | 'decimal';
 
-type IDisplayType = ISimpleType | IComplexTypeNames;
+type IDisplayType = 'schema' | ISimpleType | IComplexTypeNames;
 
 type ISimpleTypeNullable = Array<ISimpleType | 'null'>;
 

@@ -74,16 +74,16 @@ class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorStat
     super(props);
     this.schema = SchemaTree(this.props.schema).getInstance();
     this.state = {
-      flat: this.schema.getFlattedTree(),
-      tree: this.schema.getTree(),
+      flat: this.schema.getFlatSchema(),
+      tree: this.schema.getSchemaTree(),
     };
   }
 
   public componentWillReceiveProps(nextProps) {
     this.schema = SchemaTree(nextProps.schema).getInstance();
     this.setState({
-      flat: this.schema.getFlattedTree(),
-      tree: this.schema.getTree(),
+      flat: this.schema.getFlatSchema(),
+      tree: this.schema.getSchemaTree(),
     });
   }
 
@@ -92,12 +92,19 @@ class SchemaEditor extends React.Component<ISchemaEditorProps, ISchemaEditorStat
     fieldId: IFieldIdentifier,
     onChangePayload: IOnChangePayload
   ) => {
-    this.schema.update(fieldId, index, onChangePayload);
-    this.setState({
-      flat: this.schema.getFlattedTree(),
-      tree: this.schema.getTree(),
-    });
-    this.props.onChange({ tree: this.schema.getTree(), flat: this.schema.getFlattedTree() });
+    this.schema.onChange(fieldId, index, onChangePayload);
+    const newFlat = this.schema
+      .getFlatSchema()
+      .map((row) => row.id)
+      .join('##');
+    const oldFlat = this.state.flat.map((row) => row.id).join('##');
+    if (oldFlat !== newFlat) {
+      this.setState({
+        flat: this.schema.getFlatSchema(),
+        tree: this.schema.getSchemaTree(),
+      });
+    }
+    this.props.onChange({ tree: this.schema.getSchemaTree(), flat: this.schema.getFlatSchema() });
   };
   public render() {
     const { flat } = this.state;
