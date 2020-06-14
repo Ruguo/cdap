@@ -258,8 +258,44 @@ class SchemaTreeBase implements ISchemaTree {
     };
   };
 
+  private removeFromTree = (tree: INode, fieldId) => {
+    if (!tree) {
+      return { tree: undefined };
+    }
+    if (fieldId.ancestors.length === 1) {
+      const field = { ...tree.children[fieldId.id] };
+      delete tree.children[fieldId.id];
+      if (Array.isArray(tree.children.order)) {
+        tree.children.order = tree.children.order.filter((id) => id === fieldId.id);
+      }
+      return { tree, removedField: field };
+    }
+    const { tree: newTree, removedField } = this.removeFromTree(
+      tree.children[fieldId.ancestors[1]],
+      { id: fieldId.id, ancestors: fieldId.ancestors.slice(1) }
+    );
+    return {
+      tree: {
+        ...tree,
+        children: {
+          ...tree.children,
+          ...newTree,
+        },
+      },
+      removedField,
+    };
+  };
+
   private remove = (currentIndex: number) => {
-    return;
+    const matchingEntry = this.flatTree[currentIndex];
+    const idObj = { id: matchingEntry.id, ancestors: matchingEntry.ancestors };
+    const { tree, removedField } = this.removeFromTree(this.schemaTree, idObj);
+    this.schemaTree = tree;
+    const childrenInBranch = branchCount(removedField);
+    this.flatTree = [
+      ...this.flatTree.slice(0, currentIndex),
+      ...this.flatTree.slice(currentIndex + 1 + childrenInBranch),
+    ];
   };
 
   private updateTree = (
@@ -363,9 +399,9 @@ class SchemaTreeBase implements ISchemaTree {
       case 'add':
         this.add(currentIndex);
         break;
-      // case 'remove':
-      //   this.remove(currentIndex);
-      //   break;
+      case 'remove':
+        this.remove(currentIndex);
+        break;
     }
   };
 }

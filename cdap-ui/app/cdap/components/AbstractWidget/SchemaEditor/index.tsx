@@ -37,15 +37,8 @@ const styles = (theme): StyleRules => {
       display: 'grid',
       gridTemplateColumns: '34% ',
     },
-    pre: {
-      backgroundColor: theme.palette.grey[600],
-      padding: '10px',
-      borderRadius: '8px',
-      margin: '20px',
-    },
     schemaContainer: {
       width: 'auto',
-      margin: '20px',
       height: 'auto',
       maxWidth: '500px',
       '& >div': {

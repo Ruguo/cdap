@@ -35,6 +35,8 @@ const styles = () => {
       height: 'auto',
       display: 'grid',
       gridTemplateColumns: '99%',
+      gridTemplateRows: '40px auto',
+      padding: '10px',
     },
     contentContainer: {
       height: 'auto',
